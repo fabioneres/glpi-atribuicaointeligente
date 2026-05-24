@@ -13,8 +13,7 @@ if (!defined('GLPI_ROOT')) {
 PluginAtribuicaointeligenteConfig::assertCanUpdateConfig();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-   Session::checkCSRF($_POST);
-
+   // O GLPI 10 ja valida tokens CSRF de POST em inc/includes.php.
    $entity = new PluginAtribuicaointeligenteAssignmentsEntity();
    $entity->saveOptions([
       'auto_assign_group' => isset($_POST['auto_assign_group']) ? 1 : 0,

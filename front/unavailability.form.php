@@ -89,8 +89,7 @@ if (!function_exists('plugin_atribuicaointeligente_datetime_value')) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-   Session::checkCSRF($_POST);
-
+   // O GLPI 10 ja valida tokens CSRF de POST em inc/includes.php.
    if (!$DB->tableExists($table)) {
       Session::addMessageAfterRedirect(
          __('Tabela de indisponibilidades não encontrada. Reinstale ou atualize o plugin.', 'atribuicaointeligente'),
@@ -278,6 +277,7 @@ Html::header(
          </h3>
       </div>
       <div class="card-body">
+         <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken(true)]); ?>
          <?php echo Html::hidden('id', ['value' => $id]); ?>
 
          <div class="row g-3">
@@ -374,7 +374,7 @@ Html::header(
             </div>
          <?php endif; ?>
       </div>
-   <?php Html::closeForm(); ?>
+   </form>
 </div>
 
 <?php
