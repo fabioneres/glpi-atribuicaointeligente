@@ -139,27 +139,34 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    }
 
    public static function canView(): bool {
-      return Session::haveRight(self::RIGHT_CONFIG, READ);
+      return Session::haveRight(self::RIGHT_CONFIG, READ)
+         || Session::haveRight(Config::$rightname, READ)
+         || Session::haveRight(Config::$rightname, UPDATE);
    }
 
    public static function canManage(): bool {
-      return Session::haveRightsOr(self::RIGHT_CONFIG, [CREATE, UPDATE, DELETE, PURGE]);
+      return Session::haveRightsOr(self::RIGHT_CONFIG, [CREATE, UPDATE, DELETE, PURGE])
+         || Session::haveRight(Config::$rightname, UPDATE);
    }
 
    public static function canUpdateConfig(): bool {
-      return Session::haveRight(self::RIGHT_CONFIG, UPDATE);
+      return Session::haveRight(self::RIGHT_CONFIG, UPDATE)
+         || Session::haveRight(Config::$rightname, UPDATE);
    }
 
    public static function canCreateUnavailability(): bool {
-      return Session::haveRight(self::RIGHT_CONFIG, CREATE);
+      return Session::haveRight(self::RIGHT_CONFIG, CREATE)
+         || Session::haveRight(Config::$rightname, UPDATE);
    }
 
    public static function canUpdateUnavailability(): bool {
-      return Session::haveRight(self::RIGHT_CONFIG, UPDATE);
+      return Session::haveRight(self::RIGHT_CONFIG, UPDATE)
+         || Session::haveRight(Config::$rightname, UPDATE);
    }
 
    public static function canDeleteUnavailability(): bool {
-      return Session::haveRightsOr(self::RIGHT_CONFIG, [DELETE, PURGE]);
+      return Session::haveRightsOr(self::RIGHT_CONFIG, [DELETE, PURGE])
+         || Session::haveRight(Config::$rightname, UPDATE);
    }
 
    public static function assertCanView(): void {
