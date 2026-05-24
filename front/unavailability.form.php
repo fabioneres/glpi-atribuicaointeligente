@@ -278,7 +278,6 @@ Html::header(
          </h3>
       </div>
       <div class="card-body">
-         <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
          <?php echo Html::hidden('id', ['value' => $id]); ?>
 
          <div class="row g-3">
@@ -375,7 +374,7 @@ Html::header(
             </div>
          <?php endif; ?>
       </div>
-   </form>
+   <?php Html::closeForm(); ?>
 </div>
 
 <?php

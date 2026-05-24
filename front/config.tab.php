@@ -25,7 +25,6 @@ $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
       </div>
       <div class="card-body">
          <form method="post" action="<?php echo htmlspecialchars($action, ENT_QUOTES, 'UTF-8'); ?>">
-            <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
             <?php echo Html::hidden('forcetab', ['value' => 'PluginAtribuicaointeligenteConfig$1']); ?>
 
             <div class="row g-4">
@@ -97,7 +96,7 @@ $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
                   </div>
                <?php endif; ?>
             </div>
-         </form>
+         <?php Html::closeForm(); ?>
       </div>
    </div>
 </div>
