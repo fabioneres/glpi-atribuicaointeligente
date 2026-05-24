@@ -17,7 +17,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.0.1');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.0.2');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '10.0.0');
@@ -60,6 +60,10 @@ function plugin_init_atribuicaointeligente() {
    Plugin::registerClass('PluginAtribuicaointeligenteCategoryAssignment');
    Plugin::registerClass('PluginAtribuicaointeligenteTechnicianUnavailability');
    Plugin::registerClass('PluginAtribuicaointeligenteAssignmentDecisionLog');
+
+   if (Session::getLoginUserID()) {
+      PluginAtribuicaointeligenteProfile::syncCurrentProfileRight();
+   }
 
    $PLUGIN_HOOKS['config_page']['atribuicaointeligente'] = 'front/config.form.php?id=1';
    $PLUGIN_HOOKS['menu_toadd']['atribuicaointeligente'] = [

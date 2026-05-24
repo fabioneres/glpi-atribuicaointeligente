@@ -104,6 +104,48 @@ class PluginAtribuicaointeligenteProfile extends Profile {
       ], true);
    }
 
+   public static function syncCurrentProfileRight(): void {
+      global $DB;
+
+      if (!isset($_SESSION['glpiactiveprofile']['id'])
+         || !$DB->tableExists('glpi_profilerights')
+      ) {
+         return;
+      }
+
+      $profiles_id = (int) $_SESSION['glpiactiveprofile']['id'];
+      $right = PluginAtribuicaointeligenteConfig::RIGHT_CONFIG;
+
+      $iterator = $DB->request([
+         'SELECT' => ['rights'],
+         'FROM'   => 'glpi_profilerights',
+         'WHERE'  => [
+            'profiles_id' => $profiles_id,
+            'name'        => $right,
+         ],
+         'LIMIT' => 1,
+      ]);
+      $row = $iterator->current();
+
+      if (!$row || (int) ($row['rights'] ?? 0) === 0) {
+         PluginAtribuicaointeligenteConfig::repairEmptyRightsForConfigAdmins();
+         $iterator = $DB->request([
+            'SELECT' => ['rights'],
+            'FROM'   => 'glpi_profilerights',
+            'WHERE'  => [
+               'profiles_id' => $profiles_id,
+               'name'        => $right,
+            ],
+            'LIMIT' => 1,
+         ]);
+         $row = $iterator->current();
+      }
+
+      if ($row) {
+         $_SESSION['glpiactiveprofile'][$right] = (int) ($row['rights'] ?? 0);
+      }
+   }
+
    public static function createFirstAccess($profiles_id): void {
       self::addDefaultProfileInfos($profiles_id, [
          PluginAtribuicaointeligenteConfig::RIGHT_CONFIG => ALLSTANDARDRIGHT,
