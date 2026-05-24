@@ -63,6 +63,11 @@ function plugin_init_atribuicaointeligente() {
 
    if (Session::getLoginUserID()) {
       PluginAtribuicaointeligenteProfile::syncCurrentProfileRight();
+      $menuCacheKey = 'plugin_atribuicaointeligente_menu_url_fix';
+      if (($_SESSION[$menuCacheKey] ?? 0) !== 1) {
+         unset($_SESSION['glpimenu']);
+         $_SESSION[$menuCacheKey] = 1;
+      }
    }
 
    $PLUGIN_HOOKS['config_page']['atribuicaointeligente'] = 'front/config.form.php?id=1';

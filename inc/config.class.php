@@ -71,7 +71,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    }
 
    public static function getFormURL($full = true) {
-      return Plugin::getWebDir('atribuicaointeligente') . '/front/config.form.php';
+      return Plugin::getWebDir('atribuicaointeligente', $full) . '/front/config.form.php';
    }
 
    public function rawSearchOptions() {
