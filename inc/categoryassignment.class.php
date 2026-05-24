@@ -163,7 +163,7 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
    }
 
    public static function getMassiveActions(string $type): array {
-      if ($type !== self::class || !PluginAtribuicaointeligenteConfig::canManage()) {
+      if ($type !== self::class || !PluginAtribuicaointeligenteConfig::canUpdateConfig()) {
          return [];
       }
 
@@ -202,7 +202,7 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
       }
 
       $itemtype = $item->getType();
-      if (!PluginAtribuicaointeligenteConfig::canManage()) {
+      if (!PluginAtribuicaointeligenteConfig::canUpdateConfig()) {
          Session::addMessageAfterRedirect(__('Você não tem permissão para executar esta ação.', 'atribuicaointeligente'), false, ERROR);
          foreach ($ids as $key => $val) {
             if ($val) {

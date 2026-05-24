@@ -15,7 +15,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.0.0');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.0.1');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_DIR')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_DIR', __DIR__);
@@ -52,6 +52,7 @@ function plugin_atribuicaointeligente_install() {
          PluginAtribuicaointeligenteConfig::installRights();
       },
       'default_config' => function() {
+         PluginAtribuicaointeligenteConfig::ensureDisplayItem();
          PluginAtribuicaointeligenteConfig::ensureDefaultConfig();
       },
       'migrate_nextool' => function() {

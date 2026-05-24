@@ -8,6 +8,7 @@ Plugin GLPI para atribuição automática de chamados a técnicos por categoria/
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
+- Versão atual: **1.0.1**.
 
 ## Referências
 
@@ -27,6 +28,15 @@ GLPI_ROOT/plugins/atribuicaointeligente
 ```
 
 Depois acesse **Configurar > Plugins**, instale e ative o plugin **Atribuição Inteligente**.
+
+## Permissões
+
+O plugin cria o direito `plugin_atribuicaointeligente` em **Administração > Perfis > Atribuição Inteligente**.
+
+- `Ler`: acessa as telas e logs do plugin.
+- `Criar`: adiciona indisponibilidades.
+- `Atualizar`: altera configurações, categorias e indisponibilidades.
+- `Excluir/Purgar`: remove indisponibilidades.
 
 ## Recursos
 

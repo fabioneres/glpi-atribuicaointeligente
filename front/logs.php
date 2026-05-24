@@ -19,11 +19,17 @@ $table = PluginAtribuicaointeligenteConfig::getDecisionLogsTable();
 $rows = [];
 
 if ($DB->tableExists($table)) {
-   $iterator = $DB->request([
+   $criteria = [
       'FROM'  => $table,
       'ORDER' => 'id DESC',
       'LIMIT' => 100,
-   ]);
+   ];
+   $entityCriteria = PluginAtribuicaointeligenteConfig::getEntityRestrictCriteria('entities_id', true);
+   if (!empty($entityCriteria)) {
+      $criteria['WHERE'] = $entityCriteria;
+   }
+
+   $iterator = $DB->request($criteria);
    foreach ($iterator as $row) {
       $rows[] = $row;
    }

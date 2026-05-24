@@ -13,8 +13,10 @@ if (!defined('GLPI_ROOT')) {
 PluginAtribuicaointeligenteConfig::assertCanView();
 
 $entity = new PluginAtribuicaointeligenteAssignmentsEntity();
-$entity->syncMissingCategories();
-PluginAtribuicaointeligenteCategoryAssignment::ensureDisplayPreferences();
+if (PluginAtribuicaointeligenteConfig::canUpdateConfig()) {
+   $entity->syncMissingCategories();
+   PluginAtribuicaointeligenteCategoryAssignment::ensureDisplayPreferences();
+}
 
 $embedded = !empty($_GET['embedded']);
 if (!$embedded) {

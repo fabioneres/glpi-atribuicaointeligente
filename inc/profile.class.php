@@ -37,9 +37,11 @@ class PluginAtribuicaointeligenteProfile extends Profile {
 
    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       if ($item instanceof Profile) {
-         self::addDefaultProfileInfos($item->getID(), [
-            PluginAtribuicaointeligenteConfig::RIGHT_CONFIG => 0,
-         ]);
+         if (Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE])) {
+            self::addDefaultProfileInfos($item->getID(), [
+               PluginAtribuicaointeligenteConfig::RIGHT_CONFIG => 0,
+            ]);
+         }
 
          $profile = new self();
          $profile->showFormAtribuicaoInteligente((int) $item->getID());
@@ -87,6 +89,7 @@ class PluginAtribuicaointeligenteProfile extends Profile {
             && (int) $_SESSION['glpiactiveprofile']['id'] === (int) $profiles_id
          ) {
             $_SESSION['glpiactiveprofile'][$right] = $sessionValue;
+            unset($_SESSION['glpimenu']);
          }
       }
    }

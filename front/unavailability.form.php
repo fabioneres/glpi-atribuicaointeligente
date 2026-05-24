@@ -29,6 +29,9 @@ global $DB;
 $table = PluginAtribuicaointeligenteConfig::getUnavailabilitiesTable();
 $id = isset($_REQUEST['id']) ? (int) $_REQUEST['id'] : 0;
 $item = new PluginAtribuicaointeligenteTechnicianUnavailability();
+$canCreate = PluginAtribuicaointeligenteConfig::canCreateUnavailability();
+$canUpdate = PluginAtribuicaointeligenteConfig::canUpdateUnavailability();
+$canDelete = PluginAtribuicaointeligenteConfig::canDeleteUnavailability();
 
 Toolbox::logInFile('plugin_atribuicaointeligente', 'FORM indisponibilidade acessado: ' . json_encode([
    'method'              => $_SERVER['REQUEST_METHOD'] ?? '',
@@ -36,12 +39,25 @@ Toolbox::logInFile('plugin_atribuicaointeligente', 'FORM indisponibilidade acess
    'user_id'             => Session::getLoginUserID(),
    'profile_id'          => $_SESSION['glpiactiveprofile']['id'] ?? null,
    'plugin_right_value'  => $_SESSION['glpiactiveprofile'][PluginAtribuicaointeligenteConfig::RIGHT_CONFIG] ?? null,
-   'config_update'       => Session::haveRight(Config::$rightname, UPDATE) ? 1 : 0,
-   'can_manage'          => PluginAtribuicaointeligenteConfig::canManage() ? 1 : 0,
+   'can_create'          => $canCreate ? 1 : 0,
+   'can_update'          => $canUpdate ? 1 : 0,
+   'can_delete'          => $canDelete ? 1 : 0,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 
-if (!PluginAtribuicaointeligenteConfig::canManage()) {
-   Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao formulario de indisponibilidade.' . PHP_EOL);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+   if ($id > 0 && !$canUpdate) {
+      Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao formulario de edicao de indisponibilidade.' . PHP_EOL);
+      Html::displayRightError();
+   }
+
+   if ($id <= 0 && !$canCreate) {
+      Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao formulario de criacao de indisponibilidade.' . PHP_EOL);
+      Html::displayRightError();
+   }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$canCreate && !$canUpdate && !$canDelete) {
+   Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao POST de indisponibilidade.' . PHP_EOL);
    Html::displayRightError();
 }
 
@@ -85,14 +101,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    }
 
    $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+   $current = null;
+   if ($id > 0) {
+      $iterator = $DB->request([
+         'FROM'  => $table,
+         'WHERE' => ['id' => $id],
+         'LIMIT' => 1,
+      ]);
+      $current = $iterator->current();
+
+      if (!$current) {
+         Session::addMessageAfterRedirect(__('Indisponibilidade nao encontrada.', 'atribuicaointeligente'), false, ERROR);
+         Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      }
+
+      if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($current['entities_id'] ?? 0))) {
+         Html::displayRightError();
+      }
+   }
 
    if (isset($_POST['delete']) && $id > 0) {
+      PluginAtribuicaointeligenteConfig::assertCanDeleteUnavailability();
       $DB->delete($table, ['id' => $id]);
       Session::addMessageAfterRedirect(__('Indisponibilidade excluída.', 'atribuicaointeligente'), false, INFO);
       Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
    }
 
    if (isset($_POST['toggle']) && $id > 0) {
+      PluginAtribuicaointeligenteConfig::assertCanUpdateUnavailability();
       $newState = isset($_POST['is_active']) && (int) $_POST['is_active'] === 1 ? 0 : 1;
       $DB->update($table, [
          'is_active' => $newState,
@@ -123,6 +159,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'date_mod'    => date('Y-m-d H:i:s'),
    ];
 
+   if ($id > 0) {
+      PluginAtribuicaointeligenteConfig::assertCanUpdateUnavailability();
+   } else {
+      PluginAtribuicaointeligenteConfig::assertCanCreateUnavailability();
+   }
+
    Toolbox::logInFile('plugin_atribuicaointeligente', 'POST indisponibilidade recebido: ' . json_encode([
       'id'          => $id,
       'users_id'    => $input['users_id'],
@@ -133,7 +175,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'weekday'     => $input['weekday'],
       'is_active'   => $input['is_active'],
       'profile_id'  => $_SESSION['glpiactiveprofile']['id'] ?? null,
-      'can_manage'  => PluginAtribuicaointeligenteConfig::canManage() ? 1 : 0,
+      'can_create'  => $canCreate ? 1 : 0,
+      'can_update'  => $canUpdate ? 1 : 0,
+      'can_delete'  => $canDelete ? 1 : 0,
    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 
    $errors = [];
@@ -151,6 +195,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    }
    if ($dateStart !== null && $dateEnd !== null && strtotime($dateStart) > strtotime($dateEnd)) {
       $errors[] = __('A data inicial não pode ser maior que a data final.', 'atribuicaointeligente');
+   }
+
+   if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) $input['entities_id'])) {
+      $errors[] = __('Voce nao tem acesso a entidade selecionada.', 'atribuicaointeligente');
    }
 
    if (!empty($errors)) {
@@ -200,7 +248,16 @@ $fields = [
    'is_active'   => 1,
 ];
 
-if ($id > 0 && $item->getFromDB($id)) {
+if ($id > 0) {
+   if (!$item->getFromDB($id)) {
+      Session::addMessageAfterRedirect(__('Indisponibilidade nao encontrada.', 'atribuicaointeligente'), false, ERROR);
+      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+   }
+
+   if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($item->fields['entities_id'] ?? 0))) {
+      Html::displayRightError();
+   }
+
    $fields = array_merge($fields, $item->fields);
 }
 
@@ -301,16 +358,20 @@ Html::header(
             </a>
          </div>
 
-         <?php if ($id > 0): ?>
+         <?php if ($id > 0 && ($canUpdate || $canDelete)): ?>
             <div class="d-flex flex-wrap gap-2">
-               <button type="submit" name="toggle" class="btn btn-outline-warning">
-                  <i class="ti ti-power me-1"></i>
-                  <?php echo (int) $fields['is_active'] === 1 ? __('Desativar', 'atribuicaointeligente') : __('Ativar', 'atribuicaointeligente'); ?>
-               </button>
-               <button type="submit" name="delete" class="btn btn-outline-danger" onclick="return confirm('<?php echo htmlspecialchars(__('Excluir esta indisponibilidade?', 'atribuicaointeligente'), ENT_QUOTES, 'UTF-8'); ?>');">
-                  <i class="ti ti-trash me-1"></i>
-                  <?php echo __('Excluir', 'atribuicaointeligente'); ?>
-               </button>
+               <?php if ($canUpdate): ?>
+                  <button type="submit" name="toggle" class="btn btn-outline-warning">
+                     <i class="ti ti-power me-1"></i>
+                     <?php echo (int) $fields['is_active'] === 1 ? __('Desativar', 'atribuicaointeligente') : __('Ativar', 'atribuicaointeligente'); ?>
+                  </button>
+               <?php endif; ?>
+               <?php if ($canDelete): ?>
+                  <button type="submit" name="delete" class="btn btn-outline-danger" onclick="return confirm('<?php echo htmlspecialchars(__('Excluir esta indisponibilidade?', 'atribuicaointeligente'), ENT_QUOTES, 'UTF-8'); ?>');">
+                     <i class="ti ti-trash me-1"></i>
+                     <?php echo __('Excluir', 'atribuicaointeligente'); ?>
+                  </button>
+               <?php endif; ?>
             </div>
          <?php endif; ?>
       </div>

@@ -10,7 +10,7 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
-$canEdit = PluginAtribuicaointeligenteConfig::canManage();
+$canEdit = PluginAtribuicaointeligenteConfig::canUpdateConfig();
 $config = PluginAtribuicaointeligenteConfig::getConfigValues();
 $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
 ?>

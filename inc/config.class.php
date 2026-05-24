@@ -139,14 +139,27 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    }
 
    public static function canView(): bool {
-      return Session::haveRight(self::RIGHT_CONFIG, READ)
-         || Session::haveRight(Config::$rightname, READ)
-         || Session::haveRight(Config::$rightname, UPDATE);
+      return Session::haveRight(self::RIGHT_CONFIG, READ);
    }
 
    public static function canManage(): bool {
-      return Session::haveRight(self::RIGHT_CONFIG, UPDATE)
-         || Session::haveRight(Config::$rightname, UPDATE);
+      return Session::haveRightsOr(self::RIGHT_CONFIG, [CREATE, UPDATE, DELETE, PURGE]);
+   }
+
+   public static function canUpdateConfig(): bool {
+      return Session::haveRight(self::RIGHT_CONFIG, UPDATE);
+   }
+
+   public static function canCreateUnavailability(): bool {
+      return Session::haveRight(self::RIGHT_CONFIG, CREATE);
+   }
+
+   public static function canUpdateUnavailability(): bool {
+      return Session::haveRight(self::RIGHT_CONFIG, UPDATE);
+   }
+
+   public static function canDeleteUnavailability(): bool {
+      return Session::haveRightsOr(self::RIGHT_CONFIG, [DELETE, PURGE]);
    }
 
    public static function assertCanView(): void {
@@ -161,13 +174,112 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       }
    }
 
+   public static function assertCanUpdateConfig(): void {
+      if (!self::canUpdateConfig()) {
+         Html::displayRightError();
+      }
+   }
+
+   public static function assertCanCreateUnavailability(): void {
+      if (!self::canCreateUnavailability()) {
+         Html::displayRightError();
+      }
+   }
+
+   public static function assertCanUpdateUnavailability(): void {
+      if (!self::canUpdateUnavailability()) {
+         Html::displayRightError();
+      }
+   }
+
+   public static function assertCanDeleteUnavailability(): void {
+      if (!self::canDeleteUnavailability()) {
+         Html::displayRightError();
+      }
+   }
+
    public static function installRights(): void {
       $migration = new Migration(PLUGIN_ATRIBUICAOINTELIGENTE_VERSION);
-      if (!countElementsInTable('glpi_profilerights', ['name' => self::RIGHT_CONFIG])) {
-         ProfileRight::addProfileRights([self::RIGHT_CONFIG]);
-         $migration->addRight(self::RIGHT_CONFIG, ALLSTANDARDRIGHT, [Config::$rightname => UPDATE]);
-         $migration->executeMigration();
+      $migration->addRight(self::RIGHT_CONFIG, ALLSTANDARDRIGHT, [Config::$rightname => UPDATE]);
+      $migration->executeMigration();
+
+      ProfileRight::addProfileRights([self::RIGHT_CONFIG]);
+      self::repairEmptyRightsForConfigAdmins();
+   }
+
+   public static function repairEmptyRightsForConfigAdmins(): void {
+      global $DB;
+
+      if (!$DB->tableExists('glpi_profilerights')) {
+         return;
       }
+
+      $right = self::RIGHT_CONFIG;
+      $configRight = Config::$rightname;
+      $hasGranted = $DB->doQuery(
+         "SELECT `id`
+          FROM `glpi_profilerights`
+          WHERE `name` = '{$right}'
+            AND COALESCE(`rights`, 0) > 0
+          LIMIT 1"
+      );
+
+      if ($hasGranted && $hasGranted->num_rows > 0) {
+         return;
+      }
+
+      $DB->doQuery(
+         "UPDATE `glpi_profilerights` pluginright
+          INNER JOIN `glpi_profilerights` configright
+             ON configright.`profiles_id` = pluginright.`profiles_id`
+            AND configright.`name` = '{$configRight}'
+            AND (configright.`rights` & " . (int) UPDATE . ") = " . (int) UPDATE . "
+          SET pluginright.`rights` = " . (int) ALLSTANDARDRIGHT . "
+          WHERE pluginright.`name` = '{$right}'
+            AND COALESCE(pluginright.`rights`, 0) = 0"
+      );
+   }
+
+   public static function ensureDisplayItem(): bool {
+      global $DB;
+
+      if (!$DB->tableExists(self::getTable())) {
+         return false;
+      }
+
+      $iterator = $DB->request([
+         'FROM'  => self::getTable(),
+         'WHERE' => ['id' => self::CONFIG_ID],
+         'LIMIT' => 1,
+      ]);
+      if ($iterator->current()) {
+         return true;
+      }
+
+      return (bool) $DB->insert(self::getTable(), ['id' => self::CONFIG_ID]);
+   }
+
+   public static function canUseEntity(int $entities_id): bool {
+      if ($entities_id < 0) {
+         return false;
+      }
+
+      return Session::haveAccessToEntity($entities_id, true);
+   }
+
+   public static function getEntityRestrictCriteria(string $field = 'entities_id', bool $includeGlobal = true): array {
+      if (Session::canViewAllEntities()) {
+         return [];
+      }
+
+      $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
+      if ($includeGlobal) {
+         $entities[] = 0;
+      }
+
+      return [
+         $field => array_values(array_unique($entities)),
+      ];
    }
 
    public static function getDefaultConfig(): array {

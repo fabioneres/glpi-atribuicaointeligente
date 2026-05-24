@@ -15,7 +15,8 @@ PluginAtribuicaointeligenteConfig::assertCanView();
 global $DB;
 
 $embedded = !empty($_GET['embedded']);
-$canManage = PluginAtribuicaointeligenteConfig::canManage();
+$canCreate = PluginAtribuicaointeligenteConfig::canCreateUnavailability();
+$canUpdate = PluginAtribuicaointeligenteConfig::canUpdateUnavailability();
 $table = PluginAtribuicaointeligenteConfig::getUnavailabilitiesTable();
 
 if (!$embedded) {
@@ -29,10 +30,16 @@ if (!$embedded) {
 
 $rows = [];
 if ($DB->tableExists($table)) {
-   $iterator = $DB->request([
+   $criteria = [
       'FROM'  => $table,
       'ORDER' => 'is_active DESC, date_start DESC, id DESC',
-   ]);
+   ];
+   $entityCriteria = PluginAtribuicaointeligenteConfig::getEntityRestrictCriteria('entities_id', true);
+   if (!empty($entityCriteria)) {
+      $criteria['WHERE'] = $entityCriteria;
+   }
+
+   $iterator = $DB->request($criteria);
    foreach ($iterator as $row) {
       $rows[] = $row;
    }
@@ -47,7 +54,7 @@ $formUrl = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.f
          <i class="ti ti-user-off me-2"></i>
          <?php echo __('Indisponibilidades', 'atribuicaointeligente'); ?>
       </h3>
-      <?php if ($canManage): ?>
+      <?php if ($canCreate): ?>
          <a class="btn btn-primary" href="<?php echo htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'); ?>">
             <i class="ti ti-plus me-1"></i>
             <?php echo __('Adicionar', 'atribuicaointeligente'); ?>
@@ -67,7 +74,7 @@ $formUrl = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.f
                <th><?php echo __('Dia', 'atribuicaointeligente'); ?></th>
                <th><?php echo __('Observação', 'atribuicaointeligente'); ?></th>
                <th><?php echo __('Ativo', 'atribuicaointeligente'); ?></th>
-               <?php if ($canManage): ?>
+               <?php if ($canUpdate): ?>
                   <th class="text-end"><?php echo __('Ações', 'atribuicaointeligente'); ?></th>
                <?php endif; ?>
             </tr>
@@ -75,7 +82,7 @@ $formUrl = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.f
          <tbody>
             <?php if (empty($rows)): ?>
                <tr>
-                  <td colspan="<?php echo $canManage ? 9 : 8; ?>" class="text-muted text-center">
+                  <td colspan="<?php echo $canUpdate ? 9 : 8; ?>" class="text-muted text-center">
                      <?php echo __('Nenhuma indisponibilidade cadastrada.', 'atribuicaointeligente'); ?>
                   </td>
                </tr>
@@ -83,6 +90,8 @@ $formUrl = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.f
             <?php foreach ($rows as $row): ?>
                <?php
                $id = (int) $row['id'];
+               $canUpdateRow = $canUpdate
+                  && PluginAtribuicaointeligenteConfig::canUseEntity((int) ($row['entities_id'] ?? 0));
                $entityName = ((int) $row['entities_id'] === 0)
                   ? __('Todas / global', 'atribuicaointeligente')
                   : Dropdown::getDropdownName('glpi_entities', (int) $row['entities_id']);
@@ -102,11 +111,13 @@ $formUrl = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.f
                         <span class="badge bg-secondary text-white"><?php echo __('Não', 'atribuicaointeligente'); ?></span>
                      <?php endif; ?>
                   </td>
-                  <?php if ($canManage): ?>
+                  <?php if ($canUpdate): ?>
                      <td class="text-end text-nowrap">
-                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo htmlspecialchars($formUrl . '?id=' . $id, ENT_QUOTES, 'UTF-8'); ?>">
-                           <i class="ti ti-edit"></i>
-                        </a>
+                        <?php if ($canUpdateRow): ?>
+                           <a class="btn btn-sm btn-outline-secondary" href="<?php echo htmlspecialchars($formUrl . '?id=' . $id, ENT_QUOTES, 'UTF-8'); ?>">
+                              <i class="ti ti-edit"></i>
+                           </a>
+                        <?php endif; ?>
                      </td>
                   <?php endif; ?>
                </tr>

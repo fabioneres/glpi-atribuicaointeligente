@@ -10,7 +10,7 @@ if (!defined('GLPI_ROOT')) {
    require_once dirname(__DIR__, 3) . '/inc/includes.php';
 }
 
-PluginAtribuicaointeligenteConfig::assertCanManage();
+PluginAtribuicaointeligenteConfig::assertCanUpdateConfig();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    Session::checkCSRF($_POST);

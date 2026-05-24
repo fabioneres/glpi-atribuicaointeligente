@@ -12,11 +12,23 @@ if (!defined('GLPI_ROOT')) {
 
 PluginAtribuicaointeligenteConfig::assertCanView();
 
+global $CFG_GLPI;
+
 $item = new PluginAtribuicaointeligenteConfig();
 $id = PluginAtribuicaointeligenteConfig::CONFIG_ID;
 if (!$item->getFromDB($id)) {
-   $item->add(['id' => $id]);
-   $item->getFromDB($id);
+   if (PluginAtribuicaointeligenteConfig::canUpdateConfig()) {
+      PluginAtribuicaointeligenteConfig::ensureDisplayItem();
+   }
+
+   if (!$item->getFromDB($id)) {
+      Session::addMessageAfterRedirect(
+         __('Registro de configuracao do plugin nao encontrado. Reinstale ou atualize o plugin.', 'atribuicaointeligente'),
+         false,
+         ERROR
+      );
+      Html::redirect($CFG_GLPI['root_doc'] . '/front/plugin.php');
+   }
 }
 
 Html::header(
