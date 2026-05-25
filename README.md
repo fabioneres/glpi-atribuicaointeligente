@@ -40,6 +40,8 @@ O plugin cria o direito `plugin_atribuicaointeligente` em **Administração > Pe
 
 ## Recursos
 
+Consulte tambem o [ROADMAP.md](ROADMAP.md) para evolucoes planejadas.
+
 - Atribuição automática por balanceamento.
 - Atribuição automática por rodízio.
 - Opção para atribuir também o grupo encarregado da categoria.
