@@ -1,0 +1,10 @@
+.marketplace .plugin[data-key="atribuicaointeligente"] .main .icon .icon-text {
+   background-color: transparent !important;
+   background-image: url("../pics/icon.png") !important;
+   background-position: center !important;
+   background-repeat: no-repeat !important;
+   background-size: contain !important;
+   color: transparent !important;
+   font-size: 0 !important;
+   overflow: hidden;
+}

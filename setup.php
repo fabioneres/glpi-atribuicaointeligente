@@ -36,6 +36,7 @@ function plugin_init_atribuicaointeligente() {
    global $PLUGIN_HOOKS;
 
    $PLUGIN_HOOKS['csrf_compliant']['atribuicaointeligente'] = true;
+   $PLUGIN_HOOKS['add_css']['atribuicaointeligente'][] = 'css/atribuicaointeligente.css';
 
    Plugin::loadLang('atribuicaointeligente');
 
