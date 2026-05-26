@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+   <name>Atribuição Inteligente</name>
+   <key>atribuicaointeligente</key>
+   <state>stable</state>
+   <logo>https://raw.githubusercontent.com/fabioneres/glpi-atribuicaointeligente/main/atribuicaointeligente.png</logo>
+   <description>
+      <short>
+         <pt_BR>Atribuição automática inteligente de técnicos para chamados GLPI.</pt_BR>
+         <en>Smart automatic technician assignment for GLPI tickets.</en>
+      </short>
+      <long>
+         <pt_BR>Plugin GLPI baseado no SmartAssign do NexTool, com distribuição automática por categoria/grupo, balanceamento ou rodízio e suporte a indisponibilidade de técnicos.</pt_BR>
+         <en>GLPI plugin based on NexTool SmartAssign, with automatic category/group assignment, balancing or round-robin mode, and technician unavailability support.</en>
+      </long>
+   </description>
+   <homepage>https://github.com/fabioneres/glpi-atribuicaointeligente</homepage>
+   <download>https://github.com/fabioneres/glpi-atribuicaointeligente/releases</download>
+   <issues>https://github.com/fabioneres/glpi-atribuicaointeligente/issues</issues>
+   <readme>https://github.com/fabioneres/glpi-atribuicaointeligente/blob/main/README.md</readme>
+   <authors>
+      <author>Fabio Neres</author>
+   </authors>
+   <versions>
+      <version>
+         <num>1.0.1</num>
+         <compatibility>~10.0.0</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <lang>pt_BR</lang>
+   </langs>
+   <license>GPLv3+</license>
+</root>

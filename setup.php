@@ -110,7 +110,7 @@ function plugin_version_atribuicaointeligente() {
       'version'      => PLUGIN_ATRIBUICAOINTELIGENTE_VERSION,
       'author'       => 'Fabio Neres',
       'license'      => 'GPLv3+',
-      'homepage'     => '',
+      'homepage'     => 'https://github.com/fabioneres/glpi-atribuicaointeligente',
       'requirements' => [
          'glpi' => [
             'min' => PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION,

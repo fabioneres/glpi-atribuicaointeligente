@@ -1,5 +1,9 @@
 # Atribuição Inteligente
 
+<p align="center">
+  <img src="atribuicaointeligente.png" alt="Atribuicao Inteligente" width="180">
+</p>
+
 Plugin GLPI para atribuição automática de chamados a técnicos por categoria/grupo, com suporte a indisponibilidade de técnicos.
 
 ## Base
