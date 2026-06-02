@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          false,
          ERROR
       );
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
    }
 
    $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if (!$current) {
          Session::addMessageAfterRedirect(__('Indisponibilidade nao encontrada.', 'atribuicaointeligente'), false, ERROR);
-         Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+         Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
       }
 
       if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($current['entities_id'] ?? 0))) {
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       PluginAtribuicaointeligenteConfig::assertCanDeleteUnavailability();
       $DB->delete($table, ['id' => $id]);
       Session::addMessageAfterRedirect(__('Indisponibilidade excluída.', 'atribuicaointeligente'), false, INFO);
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
    }
 
    if (isset($_POST['toggle']) && $id > 0) {
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          'date_mod'  => date('Y-m-d H:i:s'),
       ], ['id' => $id]);
       Session::addMessageAfterRedirect(__('Status atualizado.', 'atribuicaointeligente'), false, INFO);
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
    }
 
    $type = (string) ($_POST['type'] ?? 'temporary');
@@ -223,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          Toolbox::logInFile('plugin_atribuicaointeligente', 'Indisponibilidade inserida com sucesso.' . PHP_EOL);
          Session::addMessageAfterRedirect(__('Indisponibilidade adicionada.', 'atribuicaointeligente'), false, INFO);
       }
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
    } catch (Throwable $e) {
       Toolbox::logInFile('plugin_atribuicaointeligente', 'Falha ao gravar indisponibilidade: ' . $e->getMessage() . PHP_EOL);
       Session::addMessageAfterRedirect(
@@ -250,7 +250,7 @@ $fields = [
 if ($id > 0) {
    if (!$item->getFromDB($id)) {
       Session::addMessageAfterRedirect(__('Indisponibilidade nao encontrada.', 'atribuicaointeligente'), false, ERROR);
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
    }
 
    if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($item->fields['entities_id'] ?? 0))) {
@@ -352,7 +352,7 @@ Html::header(
                <i class="ti ti-device-floppy me-1"></i>
                <?php echo __('Salvar', 'atribuicaointeligente'); ?>
             </button>
-            <a class="btn btn-outline-secondary" href="<?php echo htmlspecialchars(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=PluginAtribuicaointeligenteConfig$3', ENT_QUOTES, 'UTF-8'); ?>">
+            <a class="btn btn-outline-secondary" href="<?php echo htmlspecialchars(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3', ENT_QUOTES, 'UTF-8'); ?>">
                <?php echo __('Voltar', 'atribuicaointeligente'); ?>
             </a>
          </div>

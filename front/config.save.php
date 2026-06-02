@@ -26,4 +26,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $forcetab = $_POST['forcetab'] ?? 'PluginAtribuicaointeligenteConfig$1';
-Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(false) . '?forcetab=' . urlencode($forcetab));
+Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=' . urlencode($forcetab));
