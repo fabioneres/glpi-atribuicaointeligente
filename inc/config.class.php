@@ -35,6 +35,10 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       return 'glpi_plugin_atribuicaointeligente_unavailabilities';
    }
 
+   public static function getWorkSchedulesTable(): string {
+      return 'glpi_plugin_atribuicaointeligente_work_schedules';
+   }
+
    public static function getDecisionLogsTable(): string {
       return 'glpi_plugin_atribuicaointeligente_decision_logs';
    }
@@ -107,8 +111,9 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          1 => self::createTabEntry(__('Configurações', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-settings'),
          2 => self::createTabEntry(__('Categorias', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-list-search'),
          3 => self::createTabEntry(__('Indisponibilidades', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-user-off'),
-         4 => self::createTabEntry(__('Logs', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-list-details'),
-         5 => self::createTabEntry(__('Sobre', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-info-circle'),
+         4 => self::createTabEntry(__('Escala de atendimento', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-calendar-time'),
+         5 => self::createTabEntry(__('Logs', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-list-details'),
+         6 => self::createTabEntry(__('Sobre', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-info-circle'),
       ];
    }
 
@@ -128,9 +133,12 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
             include PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/front/unavailabilities.tab.php';
             break;
          case 4:
-            include PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/front/logs.tab.php';
+            include PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/front/work_schedules.tab.php';
             break;
          case 5:
+            include PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/front/logs.tab.php';
+            break;
+         case 6:
             include PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/front/about.tab.php';
             break;
       }
@@ -169,6 +177,21 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          || Session::haveRight(Config::$rightname, UPDATE);
    }
 
+   public static function canCreateWorkSchedule(): bool {
+      return Session::haveRight(self::RIGHT_CONFIG, CREATE)
+         || Session::haveRight(Config::$rightname, UPDATE);
+   }
+
+   public static function canUpdateWorkSchedule(): bool {
+      return Session::haveRight(self::RIGHT_CONFIG, UPDATE)
+         || Session::haveRight(Config::$rightname, UPDATE);
+   }
+
+   public static function canDeleteWorkSchedule(): bool {
+      return Session::haveRightsOr(self::RIGHT_CONFIG, [DELETE, PURGE])
+         || Session::haveRight(Config::$rightname, UPDATE);
+   }
+
    public static function assertCanView(): void {
       if (!self::canView()) {
          Html::displayRightError();
@@ -201,6 +224,24 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
    public static function assertCanDeleteUnavailability(): void {
       if (!self::canDeleteUnavailability()) {
+         Html::displayRightError();
+      }
+   }
+
+   public static function assertCanCreateWorkSchedule(): void {
+      if (!self::canCreateWorkSchedule()) {
+         Html::displayRightError();
+      }
+   }
+
+   public static function assertCanUpdateWorkSchedule(): void {
+      if (!self::canUpdateWorkSchedule()) {
+         Html::displayRightError();
+      }
+   }
+
+   public static function assertCanDeleteWorkSchedule(): void {
+      if (!self::canDeleteWorkSchedule()) {
          Html::displayRightError();
       }
    }

@@ -141,7 +141,7 @@ Ordem sugerida de avaliacao:
 3. politica de inclusao/exclusao;
 4. usuario ativo e nao excluido;
 5. indisponibilidade;
-6. horario de trabalho, quando existir;
+6. escala de atendimento, quando existir;
 7. carga atual;
 8. criterio de desempate.
 
@@ -154,23 +154,24 @@ Boa pratica proposta:
 Complexidade: Media
 Impacto: Medio
 
-## Fase 3 - Horario de trabalho por tecnico
+## Fase 3 - Escala de atendimento por tecnico
 
-Evolucao planejada, mas postergada.
+Primeira versao implementada na linha 1.1.x.
 
 Objetivo:
 
-- Permitir que cada tecnico tenha horarios semanais de atendimento.
-- Ignorar tecnicos fora do horario de trabalho.
-- Combinar horario de trabalho com indisponibilidades ja existentes.
+- Permitir que cada tecnico tenha horarios semanais de atendimento. Implementado.
+- Ignorar tecnicos fora do horario de trabalho. Implementado.
+- Combinar horario de trabalho com indisponibilidades ja existentes. Implementado.
 
 Boa pratica proposta:
 
-- Criar tabela propria para horarios.
-- Permitir multiplos intervalos por dia.
-- Respeitar entidade.
-- Considerar tecnico sem horario cadastrado como disponivel por padrao.
-- Adicionar opcao global para exigir horario cadastrado.
+- Criar tabela propria para horarios. Implementado.
+- Permitir multiplos dias no mesmo cadastro. Implementado.
+- Respeitar entidade. Implementado.
+- Considerar tecnico sem horario cadastrado como disponivel por padrao. Implementado.
+- Permitir multiplos intervalos por dia. Pendente; pode ser resolvido com mais de um cadastro de escala.
+- Adicionar opcao global para exigir horario cadastrado. Pendente.
 
 Complexidade: Media/Alta
 Impacto: Alto
@@ -194,4 +195,4 @@ Algumas abordagens vistas em plugins de referencia devem ser evitadas no Atribui
 5. Implementar filtro por perfil.
 6. Implementar desempate configuravel.
 7. Implementar politica de status.
-8. Implementar horario de trabalho por tecnico.
+8. Evoluir escala de atendimento com exigencia global e intervalos avancados.

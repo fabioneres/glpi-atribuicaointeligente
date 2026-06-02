@@ -38,7 +38,7 @@ if (!defined('GLPI_ROOT')) {
                   Fabio Neres
                </p>
                <p>
-                  <?php echo __('Plugin standalone para GLPI baseado no módulo SmartAssign do NexTool, mantendo a lógica de distribuição por balanceamento ou rodízio e adicionando indisponibilidade de técnicos.', 'atribuicaointeligente'); ?>
+                  <?php echo __('Plugin standalone para GLPI baseado no módulo SmartAssign do NexTool, mantendo a lógica de distribuição por balanceamento ou rodízio e adicionando indisponibilidade e escala de atendimento de técnicos.', 'atribuicaointeligente'); ?>
                </p>
                <p>
                   <strong><?php echo __('Referência original:', 'atribuicaointeligente'); ?></strong>

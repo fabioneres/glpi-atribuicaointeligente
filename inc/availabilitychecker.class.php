@@ -22,6 +22,21 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       }
 
       $now = $now ?: new DateTimeImmutable('now');
+      $unavailabilityReason = self::getUnavailabilityReason($usersId, $entitiesId, $now);
+      if ($unavailabilityReason !== null) {
+         return $unavailabilityReason;
+      }
+
+      return self::getOutOfScheduleReason($usersId, $entitiesId, $now);
+   }
+
+   public static function isAvailable($usersId, $entitiesId = 0, ?DateTimeInterface $now = null): bool {
+      return self::getUnavailableReason($usersId, $entitiesId, $now) === null;
+   }
+
+   protected static function getUnavailabilityReason(int $usersId, int $entitiesId, DateTimeInterface $now): ?string {
+      global $DB;
+
       $table = PluginAtribuicaointeligenteConfig::getUnavailabilitiesTable();
       if (!$DB->tableExists($table)) {
          return null;
@@ -40,19 +55,44 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       }
 
       while ($row = $result->fetch_assoc()) {
-         if (self::matches($row, $now)) {
-            return self::formatReason($row);
+         if (self::matchesUnavailability($row, $now)) {
+            return self::formatUnavailabilityReason($row);
          }
       }
 
       return null;
    }
 
-   public static function isAvailable($usersId, $entitiesId = 0, ?DateTimeInterface $now = null): bool {
-      return self::getUnavailableReason($usersId, $entitiesId, $now) === null;
+   protected static function getOutOfScheduleReason(int $usersId, int $entitiesId, DateTimeInterface $now): ?string {
+      global $DB;
+
+      $table = PluginAtribuicaointeligenteConfig::getWorkSchedulesTable();
+      if (!$DB->tableExists($table)) {
+         return null;
+      }
+
+      $sql = "SELECT *
+              FROM `{$table}`
+              WHERE `users_id` = {$usersId}
+                AND `is_active` = 1
+                AND `entities_id` IN (0, {$entitiesId})
+              ORDER BY `entities_id` DESC, `id` ASC";
+
+      $result = $DB->doQuery($sql);
+      if (!$result || $result->num_rows === 0) {
+         return null;
+      }
+
+      while ($row = $result->fetch_assoc()) {
+         if (self::matchesWorkSchedule($row, $now)) {
+            return null;
+         }
+      }
+
+      return self::formatOutOfScheduleReason($now);
    }
 
-   protected static function matches(array $row, DateTimeInterface $now): bool {
+   protected static function matchesUnavailability(array $row, DateTimeInterface $now): bool {
       $type = (string) ($row['type'] ?? '');
       $today = $now->format('Y-m-d');
       $weekday = (int) $now->format('w');
@@ -78,6 +118,19 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       }
 
       return false;
+   }
+
+   protected static function matchesWorkSchedule(array $row, DateTimeInterface $now): bool {
+      $weekdays = PluginAtribuicaointeligenteTechnicianWorkSchedule::normalizeWeekdays($row['weekdays'] ?? '');
+      if (empty($weekdays) || !in_array((int) $now->format('w'), $weekdays, true)) {
+         return false;
+      }
+
+      if (!self::isWithinOptionalDatePeriod($now, $row['date_start'] ?? null, $row['date_end'] ?? null)) {
+         return false;
+      }
+
+      return self::isWithinOptionalTimePeriod($now, $row['time_start'] ?? null, $row['time_end'] ?? null);
    }
 
    protected static function isWithinPeriod(DateTimeInterface $now, $start, $end): bool {
@@ -108,6 +161,43 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       return true;
    }
 
+   protected static function isWithinOptionalDatePeriod(DateTimeInterface $now, $start, $end): bool {
+      $today = $now->format('Y-m-d');
+
+      if (!empty($start) && $today < self::normalizeDate($start)) {
+         return false;
+      }
+
+      if (!empty($end) && $today > self::normalizeDate($end)) {
+         return false;
+      }
+
+      return true;
+   }
+
+   protected static function isWithinOptionalTimePeriod(DateTimeInterface $now, $start, $end): bool {
+      if (empty($start) && empty($end)) {
+         return true;
+      }
+
+      $current = $now->format('H:i:s');
+      $startTime = !empty($start) ? substr((string) $start, 0, 8) : '00:00:00';
+      $endTime = !empty($end) ? substr((string) $end, 0, 8) : '23:59:59';
+
+      if (strlen($startTime) === 5) {
+         $startTime .= ':00';
+      }
+      if (strlen($endTime) === 5) {
+         $endTime .= ':00';
+      }
+
+      if ($startTime <= $endTime) {
+         return $current >= $startTime && $current <= $endTime;
+      }
+
+      return $current >= $startTime || $current <= $endTime;
+   }
+
    protected static function normalizeDate($value): ?string {
       if (empty($value)) {
          return null;
@@ -115,7 +205,7 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       return (new DateTimeImmutable((string) $value))->format('Y-m-d');
    }
 
-   protected static function formatReason(array $row): string {
+   protected static function formatUnavailabilityReason(array $row): string {
       $type = PluginAtribuicaointeligenteTechnicianUnavailability::getTypeLabel((string) ($row['type'] ?? ''));
       $parts = [$type];
 
@@ -139,5 +229,14 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       }
 
       return implode(' | ', array_filter($parts));
+   }
+
+   protected static function formatOutOfScheduleReason(DateTimeInterface $now): string {
+      return sprintf(
+         '%s | %s %s',
+         __('Fora da escala de atendimento', 'atribuicaointeligente'),
+         PluginAtribuicaointeligenteTechnicianUnavailability::getWeekdayLabel((int) $now->format('w')),
+         $now->format('H:i')
+      );
    }
 }

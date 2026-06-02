@@ -17,7 +17,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.0.1');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.0');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '10.0.0');
@@ -51,6 +51,7 @@ function plugin_init_atribuicaointeligente() {
    require_once __DIR__ . '/inc/assignmentsentity.class.php';
    require_once __DIR__ . '/inc/categoryassignment.class.php';
    require_once __DIR__ . '/inc/technicianunavailability.class.php';
+   require_once __DIR__ . '/inc/technicianworkschedule.class.php';
    require_once __DIR__ . '/inc/assignmentdecisionlog.class.php';
    require_once __DIR__ . '/inc/availabilitychecker.class.php';
    require_once __DIR__ . '/inc/tickethookhandler.class.php';
@@ -60,6 +61,7 @@ function plugin_init_atribuicaointeligente() {
    Plugin::registerClass('PluginAtribuicaointeligenteProfile', ['addtabon' => ['Profile']]);
    Plugin::registerClass('PluginAtribuicaointeligenteCategoryAssignment');
    Plugin::registerClass('PluginAtribuicaointeligenteTechnicianUnavailability');
+   Plugin::registerClass('PluginAtribuicaointeligenteTechnicianWorkSchedule');
    Plugin::registerClass('PluginAtribuicaointeligenteAssignmentDecisionLog');
 
    if (Session::getLoginUserID()) {

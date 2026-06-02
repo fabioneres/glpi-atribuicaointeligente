@@ -61,6 +61,26 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_unavailabilities` 
    KEY `idx_weekday` (`weekday`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
+CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_work_schedules` (
+   `id` int unsigned NOT NULL AUTO_INCREMENT,
+   `users_id` int unsigned NOT NULL DEFAULT 0,
+   `entities_id` int unsigned NOT NULL DEFAULT 0,
+   `weekdays` varchar(32) NOT NULL,
+   `time_start` time NULL DEFAULT NULL,
+   `time_end` time NULL DEFAULT NULL,
+   `date_start` date NULL DEFAULT NULL,
+   `date_end` date NULL DEFAULT NULL,
+   `comment` text NULL,
+   `is_active` tinyint NOT NULL DEFAULT 1,
+   `date_creation` timestamp NULL DEFAULT NULL,
+   `date_mod` timestamp NULL DEFAULT NULL,
+   PRIMARY KEY (`id`),
+   KEY `idx_user` (`users_id`),
+   KEY `idx_entity` (`entities_id`),
+   KEY `idx_active` (`is_active`),
+   KEY `idx_validity` (`date_start`, `date_end`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
 CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_decision_logs` (
    `id` int unsigned NOT NULL AUTO_INCREMENT,
    `tickets_id` int unsigned NULL DEFAULT NULL,

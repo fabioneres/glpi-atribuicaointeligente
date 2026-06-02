@@ -15,7 +15,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.0.1');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.0');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_DIR')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_DIR', __DIR__);
@@ -27,6 +27,7 @@ require_once __DIR__ . '/inc/profile.class.php';
 require_once __DIR__ . '/inc/assignmentsentity.class.php';
 require_once __DIR__ . '/inc/categoryassignment.class.php';
 require_once __DIR__ . '/inc/technicianunavailability.class.php';
+require_once __DIR__ . '/inc/technicianworkschedule.class.php';
 require_once __DIR__ . '/inc/assignmentdecisionlog.class.php';
 
 function plugin_atribuicaointeligente_install() {

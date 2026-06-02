@@ -10,6 +10,15 @@ if (!defined('GLPI_ROOT')) {
    require_once dirname(__DIR__, 3) . '/inc/includes.php';
 }
 
+if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_DIR')) {
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_DIR', dirname(__DIR__));
+}
+
+if (!class_exists('PluginAtribuicaointeligenteConfig')) {
+   require_once PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/inc/logger.class.php';
+   require_once PLUGIN_ATRIBUICAOINTELIGENTE_DIR . '/inc/config.class.php';
+}
+
 PluginAtribuicaointeligenteConfig::assertCanView();
 
 global $CFG_GLPI;
@@ -44,6 +53,7 @@ $validTabs = [
    'PluginAtribuicaointeligenteConfig$3',
    'PluginAtribuicaointeligenteConfig$4',
    'PluginAtribuicaointeligenteConfig$5',
+   'PluginAtribuicaointeligenteConfig$6',
 ];
 
 $tabKey = strtolower($item::getType());

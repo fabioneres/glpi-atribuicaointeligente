@@ -4,7 +4,7 @@
   <img src="atribuicaointeligente.png" alt="Atribuicao Inteligente" width="180">
 </p>
 
-Plugin GLPI para atribuição automática de chamados a técnicos por categoria/grupo, com suporte a indisponibilidade de técnicos.
+Plugin GLPI para atribuição automática de chamados a técnicos por categoria/grupo, com suporte a indisponibilidade e escala de atendimento de técnicos.
 
 ## Base
 
@@ -12,7 +12,7 @@ Plugin GLPI para atribuição automática de chamados a técnicos por categoria/
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
-- Versão atual: **1.0.1**.
+- Versão atual: **1.1.0**.
 
 ## Referências
 
@@ -38,9 +38,9 @@ Depois acesse **Configurar > Plugins**, instale e ative o plugin **Atribuição 
 O plugin cria o direito `plugin_atribuicaointeligente` em **Administração > Perfis > Atribuição Inteligente**.
 
 - `Ler`: acessa as telas e logs do plugin.
-- `Criar`: adiciona indisponibilidades.
-- `Atualizar`: altera configurações, categorias e indisponibilidades.
-- `Excluir/Purgar`: remove indisponibilidades.
+- `Criar`: adiciona indisponibilidades e escalas de atendimento.
+- `Atualizar`: altera configurações, categorias, indisponibilidades e escalas de atendimento.
+- `Excluir/Purgar`: remove indisponibilidades e escalas de atendimento.
 
 ## Recursos
 
@@ -55,6 +55,11 @@ Consulte tambem o [ROADMAP.md](ROADMAP.md) para evolucoes planejadas.
   - ausência em data específica;
   - indisponibilidade recorrente por dia da semana;
   - ausência temporária com data inicial e final.
+- Cadastro de escala de atendimento por técnico:
+  - múltiplos dias da semana no mesmo cadastro;
+  - horário inicial e final;
+  - validade opcional por período;
+  - escopo global ou por entidade.
 - Log de decisões de atribuição com técnico escolhido e técnicos ignorados.
 
 ## Observação sobre migração
