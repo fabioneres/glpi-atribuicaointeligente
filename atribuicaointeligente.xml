@@ -10,8 +10,8 @@
          <en>Smart automatic technician assignment for GLPI tickets.</en>
       </short>
       <long>
-         <pt_BR>Plugin GLPI baseado no SmartAssign do NexTool, com distribuição automática por categoria/grupo, balanceamento ou rodízio, calendário da entidade, indisponibilidade e escala de atendimento de técnicos.</pt_BR>
-         <en>GLPI plugin based on NexTool SmartAssign, with automatic category/group assignment, balancing or round-robin mode, entity calendar, technician unavailability and work schedules.</en>
+         <pt_BR>Plugin GLPI baseado no SmartAssign do NexTool, com distribuição automática por categoria/grupo, balanceamento ou rodízio, calendário da entidade, indisponibilidade, escala e filtro de atribuição manual de técnicos.</pt_BR>
+         <en>GLPI plugin based on NexTool SmartAssign, with automatic category/group assignment, balancing or round-robin mode, entity calendar, technician unavailability, work schedules and manual assignment filtering.</en>
       </long>
    </description>
    <homepage>https://github.com/fabioneres/glpi-atribuicaointeligente</homepage>
@@ -23,7 +23,7 @@
    </authors>
    <versions>
       <version>
-         <num>1.1.1</num>
+         <num>1.1.2</num>
          <compatibility>~10.0.0</compatibility>
       </version>
    </versions>

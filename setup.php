@@ -17,7 +17,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.1');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.2');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '10.0.0');
@@ -37,6 +37,7 @@ function plugin_init_atribuicaointeligente() {
 
    $PLUGIN_HOOKS['csrf_compliant']['atribuicaointeligente'] = true;
    $PLUGIN_HOOKS['add_css']['atribuicaointeligente'][] = 'css/atribuicaointeligente.css';
+   $PLUGIN_HOOKS['add_javascript']['atribuicaointeligente'][] = 'js/manual_assignment_filter.js';
 
    Plugin::loadLang('atribuicaointeligente');
 
@@ -85,6 +86,10 @@ function plugin_init_atribuicaointeligente() {
    $PLUGIN_HOOKS['pre_item_add']['atribuicaointeligente']['Ticket'] = [
       'PluginAtribuicaointeligenteTicketHookHandler',
       'preItemAdd',
+   ];
+   $PLUGIN_HOOKS['pre_item_add']['atribuicaointeligente']['Ticket_User'] = [
+      'PluginAtribuicaointeligenteTicketHookHandler',
+      'preTicketUserAdd',
    ];
    $PLUGIN_HOOKS['item_add']['atribuicaointeligente']['Ticket'] = [
       'PluginAtribuicaointeligenteTicketHookHandler',

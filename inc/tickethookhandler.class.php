@@ -28,6 +28,53 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       return $item;
    }
 
+   public static function preTicketUserAdd(CommonDBTM $item) {
+      if ($item->getType() !== 'Ticket_User') {
+         return $item;
+      }
+
+      $input = $item->input ?? [];
+      if ((int) ($input['type'] ?? 0) !== CommonITILActor::ASSIGN) {
+         return $item;
+      }
+
+      $usersId = (int) ($input['users_id'] ?? 0);
+      $ticketsId = (int) ($input['tickets_id'] ?? 0);
+      if ($usersId <= 0 || $ticketsId <= 0) {
+         return $item;
+      }
+
+      $entitiesId = 0;
+      $ticket = new Ticket();
+      if ($ticket->getFromDB($ticketsId)) {
+         $entitiesId = (int) ($ticket->fields['entities_id'] ?? 0);
+      }
+
+      $reason = PluginAtribuicaointeligenteAvailabilityChecker::getUnavailableReason($usersId, $entitiesId);
+      if ($reason === null) {
+         return $item;
+      }
+
+      Session::addMessageAfterRedirect(
+         sprintf(
+            __('Técnico indisponível para atribuição manual: %s', 'atribuicaointeligente'),
+            $reason
+         ),
+         false,
+         ERROR
+      );
+
+      PluginAtribuicaointeligenteLogger::addWarning('Atribuicao manual bloqueada para tecnico indisponivel', [
+         'tickets_id'  => $ticketsId,
+         'users_id'    => $usersId,
+         'entities_id' => $entitiesId,
+         'reason'      => $reason,
+      ]);
+
+      $item->input = [];
+      return false;
+   }
+
    public static function itemAdded(CommonDBTM $item) {
       if ($item->getType() !== 'Ticket') {
          return $item;
