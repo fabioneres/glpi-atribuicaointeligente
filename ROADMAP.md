@@ -8,6 +8,7 @@ Este roadmap registra evolucoes planejadas para o plugin, mantendo como base:
 - Nenhuma alteracao de schema em tabelas nativas do GLPI.
 - Uso de tabelas proprias do plugin para novas regras.
 - Permissoes, logs e entidade tratados desde o desenho inicial.
+- Uso opcional do calendario de atendimento da entidade para controlar a janela de distribuicao automatica.
 
 ## Fase 1 - Estabilizacao do escopo atual
 

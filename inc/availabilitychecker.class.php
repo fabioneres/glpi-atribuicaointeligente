@@ -22,6 +22,11 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       }
 
       $now = $now ?: new DateTimeImmutable('now');
+      $entityCalendarReason = self::getEntityCalendarReason($entitiesId, $now);
+      if ($entityCalendarReason !== null) {
+         return $entityCalendarReason;
+      }
+
       $unavailabilityReason = self::getUnavailabilityReason($usersId, $entitiesId, $now);
       if ($unavailabilityReason !== null) {
          return $unavailabilityReason;
@@ -61,6 +66,54 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       }
 
       return null;
+   }
+
+   protected static function getEntityCalendarReason(int $entitiesId, DateTimeInterface $now): ?string {
+      $config = PluginAtribuicaointeligenteConfig::getConfigValues();
+      if (empty($config['use_entity_calendar'])) {
+         return null;
+      }
+
+      $calendarsId = self::getEntityCalendarId($entitiesId);
+      if ($calendarsId <= 0) {
+         return null;
+      }
+
+      $calendar = new Calendar();
+      if ($calendar->getFromDB($calendarsId) && $calendar->isAWorkingHour($now->getTimestamp())) {
+         return null;
+      }
+
+      return self::formatEntityCalendarReason($calendarsId, $now);
+   }
+
+   protected static function getEntityCalendarId(int $entitiesId): int {
+      global $DB;
+
+      if ($DB->tableExists('glpi_entities')) {
+         $iterator = $DB->request([
+            'SELECT' => ['calendars_id'],
+            'FROM'   => 'glpi_entities',
+            'WHERE'  => ['id' => $entitiesId],
+            'LIMIT'  => 1,
+         ]);
+         $row = $iterator->current();
+         $calendarsId = (int) ($row['calendars_id'] ?? 0);
+         if ($calendarsId > 0) {
+            return $calendarsId;
+         }
+      }
+
+      try {
+         return (int) Entity::getUsedConfig('calendars_strategy', $entitiesId, 'calendars_id', 0);
+      } catch (Throwable $e) {
+         PluginAtribuicaointeligenteLogger::addWarning('Falha ao obter calendario da entidade', [
+            'entities_id' => $entitiesId,
+            'error'       => $e->getMessage(),
+         ]);
+      }
+
+      return 0;
    }
 
    protected static function getOutOfScheduleReason(int $usersId, int $entitiesId, DateTimeInterface $now): ?string {
@@ -235,6 +288,17 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       return sprintf(
          '%s | %s %s',
          __('Fora da escala de atendimento', 'atribuicaointeligente'),
+         PluginAtribuicaointeligenteTechnicianUnavailability::getWeekdayLabel((int) $now->format('w')),
+         $now->format('H:i')
+      );
+   }
+
+   protected static function formatEntityCalendarReason(int $calendarsId, DateTimeInterface $now): string {
+      $calendarName = Dropdown::getDropdownName('glpi_calendars', $calendarsId);
+      return sprintf(
+         '%s | %s | %s %s',
+         __('Fora do calendário de atendimento da entidade', 'atribuicaointeligente'),
+         html_entity_decode((string) $calendarName, ENT_QUOTES, 'UTF-8'),
          PluginAtribuicaointeligenteTechnicianUnavailability::getWeekdayLabel((int) $now->format('w')),
          $now->format('H:i')
       );

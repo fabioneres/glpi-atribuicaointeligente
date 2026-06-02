@@ -57,6 +57,22 @@ $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
 
                <div class="col-12 col-xl-6">
                   <label class="form-label fw-bold">
+                     <i class="ti ti-calendar-time me-1"></i>
+                     <?php echo __('Calendário da entidade', 'atribuicaointeligente'); ?>
+                  </label>
+                  <div class="form-check form-switch">
+                     <input class="form-check-input" type="checkbox" id="use_entity_calendar" name="use_entity_calendar" value="1" <?php echo !empty($config['use_entity_calendar']) ? 'checked' : ''; ?> <?php echo $canEdit ? '' : 'disabled'; ?>>
+                     <label class="form-check-label" for="use_entity_calendar">
+                        <?php echo __('Distribuir chamados apenas dentro do calendário de atendimento da entidade', 'atribuicaointeligente'); ?>
+                     </label>
+                  </div>
+                  <div class="form-text">
+                     <?php echo __('Entidades sem calendário configurado continuam funcionando como 24/7.', 'atribuicaointeligente'); ?>
+                  </div>
+               </div>
+
+               <div class="col-12 col-xl-6">
+                  <label class="form-label fw-bold">
                      <i class="ti ti-filter me-1"></i>
                      <?php echo __('Tipo de atribuição', 'atribuicaointeligente'); ?>
                   </label>

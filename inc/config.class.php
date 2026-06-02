@@ -332,11 +332,28 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
    public static function getDefaultConfig(): array {
       return [
-         'auto_assign_group' => 1,
-         'auto_assign_type'  => 0,
-         'auto_assign_mode'  => 0,
-         'exclude_managers'  => 1,
+         'auto_assign_group'   => 1,
+         'auto_assign_type'    => 0,
+         'auto_assign_mode'    => 0,
+         'exclude_managers'    => 1,
+         'use_entity_calendar' => 0,
       ];
+   }
+
+   public static function ensureConfigSchema(): void {
+      global $DB;
+
+      $table = self::getConfigTable();
+      if (!$DB->tableExists($table)) {
+         return;
+      }
+
+      $result = $DB->doQuery("SHOW COLUMNS FROM `{$table}` LIKE 'use_entity_calendar'");
+      if ($result && $result->num_rows > 0) {
+         return;
+      }
+
+      $DB->doQuery("ALTER TABLE `{$table}` ADD `use_entity_calendar` tinyint NOT NULL DEFAULT 0 AFTER `exclude_managers`");
    }
 
    public static function ensureDefaultConfig(): void {
@@ -345,6 +362,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       if (!$DB->tableExists(self::getConfigTable())) {
          return;
       }
+      self::ensureConfigSchema();
 
       $iterator = $DB->request([
          'FROM'  => self::getConfigTable(),
@@ -384,10 +402,11 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       }
 
       return [
-         'auto_assign_group' => (int) ($row['auto_assign_group'] ?? $defaults['auto_assign_group']),
-         'auto_assign_type'  => (int) ($row['auto_assign_type'] ?? $defaults['auto_assign_type']),
-         'auto_assign_mode'  => (int) ($row['auto_assign_mode'] ?? $defaults['auto_assign_mode']),
-         'exclude_managers'  => (int) ($row['exclude_managers'] ?? $defaults['exclude_managers']),
+         'auto_assign_group'   => (int) ($row['auto_assign_group'] ?? $defaults['auto_assign_group']),
+         'auto_assign_type'    => (int) ($row['auto_assign_type'] ?? $defaults['auto_assign_type']),
+         'auto_assign_mode'    => (int) ($row['auto_assign_mode'] ?? $defaults['auto_assign_mode']),
+         'exclude_managers'    => (int) ($row['exclude_managers'] ?? $defaults['exclude_managers']),
+         'use_entity_calendar' => (int) ($row['use_entity_calendar'] ?? $defaults['use_entity_calendar']),
       ];
    }
 
@@ -397,11 +416,12 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       self::ensureDefaultConfig();
       $config = array_merge(self::getDefaultConfig(), $values);
       $payload = [
-         'auto_assign_group' => (int) $config['auto_assign_group'],
-         'auto_assign_type'  => (int) $config['auto_assign_type'],
-         'auto_assign_mode'  => (int) $config['auto_assign_mode'],
-         'exclude_managers'  => (int) $config['exclude_managers'],
-         'date_mod'          => date('Y-m-d H:i:s'),
+         'auto_assign_group'   => (int) $config['auto_assign_group'],
+         'auto_assign_type'    => (int) $config['auto_assign_type'],
+         'auto_assign_mode'    => (int) $config['auto_assign_mode'],
+         'exclude_managers'    => (int) $config['exclude_managers'],
+         'use_entity_calendar' => (int) $config['use_entity_calendar'],
+         'date_mod'            => date('Y-m-d H:i:s'),
       ];
 
       $DB->update(self::getConfigTable(), $payload, ['id' => self::CONFIG_ID]);

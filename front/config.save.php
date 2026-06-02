@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'auto_assign_type'  => isset($_POST['auto_assign_type']) ? (int) $_POST['auto_assign_type'] : 0,
       'auto_assign_mode'  => isset($_POST['auto_assign_mode']) ? (int) $_POST['auto_assign_mode'] : 0,
       'exclude_managers'  => isset($_POST['exclude_managers']) ? 1 : 0,
+      'use_entity_calendar' => isset($_POST['use_entity_calendar']) ? 1 : 0,
    ]);
 
    Session::addMessageAfterRedirect(__('Configurações salvas com sucesso.', 'atribuicaointeligente'), false, INFO);

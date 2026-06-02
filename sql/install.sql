@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_configs` (
    `auto_assign_type` tinyint NOT NULL DEFAULT 0,
    `auto_assign_mode` tinyint NOT NULL DEFAULT 0,
    `exclude_managers` tinyint NOT NULL DEFAULT 1,
+   `use_entity_calendar` tinyint NOT NULL DEFAULT 0,
    `date_creation` timestamp NULL DEFAULT NULL,
    `date_mod` timestamp NULL DEFAULT NULL,
    PRIMARY KEY (`id`)
