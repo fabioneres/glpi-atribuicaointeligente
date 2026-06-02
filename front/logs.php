@@ -85,7 +85,7 @@ if (!$embedded) {
                <tr>
                   <td><?php echo htmlspecialchars((string) ($row['date_creation'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                   <td><?php echo !empty($row['tickets_id']) ? (int) $row['tickets_id'] : '-'; ?></td>
-                  <td><?php echo !empty($row['groups_id']) ? htmlspecialchars(Dropdown::getDropdownName('glpi_groups', (int) $row['groups_id']), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
+                  <td><?php echo !empty($row['groups_id']) ? htmlspecialchars(html_entity_decode(Dropdown::getDropdownName('glpi_groups', (int) $row['groups_id']), ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
                   <td><?php echo htmlspecialchars((string) ($row['mode'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                   <td><?php echo !empty($row['selected_users_id']) ? htmlspecialchars(getUserName((int) $row['selected_users_id']), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
                   <td><?php echo nl2br(htmlspecialchars(implode("\n", $ignoredText), ENT_QUOTES, 'UTF-8')); ?></td>

@@ -98,7 +98,7 @@ $formUrl = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.f
                ?>
                <tr>
                   <td><?php echo htmlspecialchars(getUserName((int) $row['users_id']), ENT_QUOTES, 'UTF-8'); ?></td>
-                  <td><?php echo htmlspecialchars($entityName, ENT_QUOTES, 'UTF-8'); ?></td>
+                  <td><?php echo htmlspecialchars(html_entity_decode($entityName, ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?></td>
                   <td><?php echo htmlspecialchars(PluginAtribuicaointeligenteTechnicianUnavailability::getTypeLabel((string) $row['type']), ENT_QUOTES, 'UTF-8'); ?></td>
                   <td><?php echo htmlspecialchars((string) ($row['date_start'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                   <td><?php echo htmlspecialchars((string) ($row['date_end'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>

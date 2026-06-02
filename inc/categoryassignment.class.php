@@ -276,7 +276,7 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
          case 2:
             $catId = self::extractItilCategoryId((array) $data);
             $label = $rawVal ?: ($catId > 0 ? Dropdown::getDropdownName('glpi_itilcategories', $catId) : '-');
-            $label = htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8');
+            $label = htmlspecialchars(html_entity_decode((string) $label, ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8');
             if ($catId > 0) {
                global $CFG_GLPI;
                $url = rtrim((string) ($CFG_GLPI['root_doc'] ?? ''), '/') . '/front/itilcategory.form.php?id=' . $catId;
@@ -295,14 +295,14 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
             } elseif (is_numeric($rawVal)) {
                $name = Dropdown::getDropdownName('glpi_entities', (int) $rawVal);
             }
-            return htmlspecialchars($name !== '' ? $name : '-', ENT_QUOTES, 'UTF-8');
+            return htmlspecialchars(html_entity_decode($name !== '' ? $name : '-', ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8');
 
          case 4:
             if ($rawVal === null || $rawVal === '') {
                return '<em class="text-muted">' . __('Sem grupo', 'atribuicaointeligente') . '</em>';
             }
             return is_numeric($rawVal)
-               ? htmlspecialchars(Dropdown::getDropdownName('glpi_groups', (int) $rawVal), ENT_QUOTES, 'UTF-8')
+               ? htmlspecialchars(html_entity_decode(Dropdown::getDropdownName('glpi_groups', (int) $rawVal), ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8')
                : htmlspecialchars((string) $rawVal, ENT_QUOTES, 'UTF-8');
 
          case 5:
