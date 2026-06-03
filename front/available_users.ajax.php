@@ -32,8 +32,10 @@ try {
       throw new RuntimeException('Dropdown::getDropdownUsers nao retornou dados em formato array');
    }
    $entitiesId = plugin_atribuicaointeligente_dropdown_entity($request['entity_restrict'] ?? 0);
-   $data['results'] = plugin_atribuicaointeligente_filter_available_users($data['results'] ?? [], $entitiesId);
-   $data['count'] = plugin_atribuicaointeligente_count_leaf_results($data['results']);
+   if (PluginAtribuicaointeligenteConfig::isEntityEnabled($entitiesId)) {
+      $data['results'] = plugin_atribuicaointeligente_filter_available_users($data['results'] ?? [], $entitiesId);
+      $data['count'] = plugin_atribuicaointeligente_count_leaf_results($data['results']);
+   }
 } catch (Throwable $e) {
    PluginAtribuicaointeligenteLogger::addError('Falha ao carregar dropdown de tecnicos disponiveis', [
       'error'   => $e->getMessage(),

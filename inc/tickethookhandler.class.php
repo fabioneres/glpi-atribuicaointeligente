@@ -49,6 +49,9 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       if ($ticket->getFromDB($ticketsId)) {
          $entitiesId = (int) ($ticket->fields['entities_id'] ?? 0);
       }
+      if (!PluginAtribuicaointeligenteConfig::isEntityEnabled($entitiesId)) {
+         return $item;
+      }
 
       $reason = PluginAtribuicaointeligenteAvailabilityChecker::getUnavailableReason($usersId, $entitiesId);
       if ($reason === null) {
@@ -101,6 +104,10 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       $ticketId = $this->getTicketId($item);
       $itilcategoriesId = $this->getTicketCategory($item);
       $entitiesId = $this->getTicketEntity($item);
+
+      if (!PluginAtribuicaointeligenteConfig::isEntityEnabled($entitiesId)) {
+         return;
+      }
 
       if ($ticketId <= 0 || $itilcategoriesId <= 0) {
          PluginAtribuicaointeligenteLogger::addDebug('Ticket sem categoria valida para atribuicao', [

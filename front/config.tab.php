@@ -12,6 +12,7 @@ if (!defined('GLPI_ROOT')) {
 
 $canEdit = PluginAtribuicaointeligenteConfig::canUpdateConfig();
 $config = PluginAtribuicaointeligenteConfig::getConfigValues();
+$entityRows = PluginAtribuicaointeligenteConfig::getEntityConfigRows();
 $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
 ?>
 
@@ -99,6 +100,60 @@ $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
                      <input class="form-check-input" type="radio" name="auto_assign_mode" id="mode_rotation" value="1" <?php echo (int) $config['auto_assign_mode'] === 1 ? 'checked' : ''; ?> <?php echo $canEdit ? '' : 'disabled'; ?>>
                      <label class="form-check-label" for="mode_rotation"><?php echo __('Rodízio', 'atribuicaointeligente'); ?></label>
                   </div>
+               </div>
+            </div>
+
+            <div class="col-12 mt-4">
+               <label class="form-label fw-bold">
+                  <i class="ti ti-building me-1"></i>
+                  <?php echo __('Entidades habilitadas', 'atribuicaointeligente'); ?>
+               </label>
+               <div class="form-text mb-2">
+                  <?php echo __('A atribuicao automatica e os logs de decisao so serao executados para entidades habilitadas aqui.', 'atribuicaointeligente'); ?>
+               </div>
+
+               <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle">
+                     <thead>
+                        <tr>
+                           <th><?php echo __('Ativo', 'atribuicaointeligente'); ?></th>
+                           <th><?php echo __('Entidade', 'atribuicaointeligente'); ?></th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <?php if (empty($entityRows)): ?>
+                           <tr>
+                              <td colspan="2" class="text-muted text-center">
+                                 <?php echo __('Nenhuma entidade disponivel para configuracao.', 'atribuicaointeligente'); ?>
+                              </td>
+                           </tr>
+                        <?php endif; ?>
+                        <?php foreach ($entityRows as $entityRow): ?>
+                           <?php
+                           $entitiesId = (int) ($entityRow['id'] ?? 0);
+                           $entityName = html_entity_decode((string) ($entityRow['completename'] ?? ''), ENT_QUOTES, 'UTF-8');
+                           ?>
+                           <tr>
+                              <td style="width:120px;">
+                                 <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="enabled_entity_<?php echo $entitiesId; ?>"
+                                           name="enabled_entities[]"
+                                           value="<?php echo $entitiesId; ?>"
+                                           <?php echo !empty($entityRow['is_active']) ? 'checked' : ''; ?>
+                                           <?php echo $canEdit ? '' : 'disabled'; ?>>
+                                 </div>
+                              </td>
+                              <td>
+                                 <label for="enabled_entity_<?php echo $entitiesId; ?>" class="mb-0">
+                                    <?php echo htmlspecialchars($entityName, ENT_QUOTES, 'UTF-8'); ?>
+                                 </label>
+                              </td>
+                           </tr>
+                        <?php endforeach; ?>
+                     </tbody>
+                  </table>
                </div>
             </div>
 

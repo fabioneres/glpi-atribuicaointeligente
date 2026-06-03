@@ -38,6 +38,10 @@ class PluginAtribuicaointeligenteAssignmentDecisionLog extends CommonDBTM {
    ): void {
       global $DB;
 
+      if (!PluginAtribuicaointeligenteConfig::isEntityEnabled((int) $entitiesId)) {
+         return;
+      }
+
       $payload = [
          'tickets_id'        => $ticketsId ? (int) $ticketsId : null,
          'groups_id'         => $groupsId ? (int) $groupsId : null,

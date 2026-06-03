@@ -18,6 +18,9 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    public const RIGHT_CONFIG = 'plugin_atribuicaointeligente';
 
    public static $rightname = self::RIGHT_CONFIG;
+   protected static $entityConfigSchemaChecked = false;
+   protected static $decisionLogSchemaChecked = false;
+   protected static $entityEnabledCache = [];
 
    public static function getTable($classname = null) {
       return 'glpi_plugin_atribuicaointeligente_config_display';
@@ -25,6 +28,10 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
    public static function getConfigTable(): string {
       return 'glpi_plugin_atribuicaointeligente_configs';
+   }
+
+   public static function getEntityConfigTable(): string {
+      return 'glpi_plugin_atribuicaointeligente_entity_configs';
    }
 
    public static function getAssignmentsTable(): string {
@@ -328,6 +335,195 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       return [
          $field => array_values(array_unique($entities)),
       ];
+   }
+
+   public static function ensureEntityConfigSchema(): void {
+      global $DB;
+
+      if (self::$entityConfigSchemaChecked) {
+         return;
+      }
+
+      $table = self::getEntityConfigTable();
+      $created = false;
+
+      if (!$DB->tableExists($table)) {
+         $DB->doQuery(
+            "CREATE TABLE IF NOT EXISTS `{$table}` (
+               `id` int unsigned NOT NULL AUTO_INCREMENT,
+               `entities_id` int unsigned NOT NULL DEFAULT 0,
+               `is_active` tinyint NOT NULL DEFAULT 1,
+               `date_creation` timestamp NULL DEFAULT NULL,
+               `date_mod` timestamp NULL DEFAULT NULL,
+               PRIMARY KEY (`id`),
+               UNIQUE KEY `ix_entities_id_uq` (`entities_id`),
+               KEY `idx_entity_active` (`entities_id`, `is_active`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC"
+         );
+         $created = true;
+      }
+
+      if ($created || self::isEntityConfigTableEmpty()) {
+         self::seedExistingEntityConfigs();
+      }
+
+      self::$entityConfigSchemaChecked = true;
+   }
+
+   protected static function isEntityConfigTableEmpty(): bool {
+      global $DB;
+
+      $table = self::getEntityConfigTable();
+      if (!$DB->tableExists($table)) {
+         return true;
+      }
+
+      $result = $DB->doQuery("SELECT `id` FROM `{$table}` LIMIT 1");
+      return !$result || $result->num_rows === 0;
+   }
+
+   protected static function seedExistingEntityConfigs(): void {
+      global $DB;
+
+      $table = self::getEntityConfigTable();
+      if (!$DB->tableExists($table) || !$DB->tableExists('glpi_entities')) {
+         return;
+      }
+
+      $DB->doQuery(
+         "INSERT INTO `{$table}` (`entities_id`, `is_active`, `date_creation`, `date_mod`)
+          SELECT ent.`id`, 1, NOW(), NOW()
+          FROM `glpi_entities` ent
+          LEFT JOIN `{$table}` cfg
+             ON cfg.`entities_id` = ent.`id`
+          WHERE cfg.`id` IS NULL"
+      );
+   }
+
+   public static function getEntityConfigRows(): array {
+      global $DB;
+
+      self::ensureEntityConfigSchema();
+
+      $table = self::getEntityConfigTable();
+      if (!$DB->tableExists($table) || !$DB->tableExists('glpi_entities')) {
+         return [];
+      }
+
+      $where = '';
+      $entityIds = self::getManageableEntityIds();
+      if (!empty($entityIds)) {
+         $where = 'WHERE ent.`id` IN (' . implode(',', array_map('intval', $entityIds)) . ')';
+      }
+
+      $result = $DB->doQuery(
+         "SELECT ent.`id`,
+                 ent.`completename`,
+                 COALESCE(cfg.`is_active`, 0) AS `is_active`
+          FROM `glpi_entities` ent
+          LEFT JOIN `{$table}` cfg
+             ON cfg.`entities_id` = ent.`id`
+          {$where}
+          ORDER BY ent.`completename` ASC, ent.`id` ASC"
+      );
+
+      $rows = [];
+      if ($result) {
+         while ($row = $result->fetch_assoc()) {
+            $row['id'] = (int) ($row['id'] ?? 0);
+            $row['is_active'] = (int) ($row['is_active'] ?? 0);
+            $rows[] = $row;
+         }
+      }
+
+      return $rows;
+   }
+
+   public static function getManageableEntityIds(): array {
+      if (Session::canViewAllEntities()) {
+         return [];
+      }
+
+      $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
+      $entities[] = 0;
+      return array_values(array_unique(array_filter($entities, static function($entityId) {
+         return $entityId >= 0;
+      })));
+   }
+
+   public static function saveEnabledEntities(array $enabledEntities): void {
+      global $DB;
+
+      self::ensureEntityConfigSchema();
+
+      $table = self::getEntityConfigTable();
+      if (!$DB->tableExists($table)) {
+         return;
+      }
+
+      $enabled = array_flip(array_map('intval', $enabledEntities));
+      $rows = self::getEntityConfigRows();
+      foreach ($rows as $row) {
+         $entitiesId = (int) ($row['id'] ?? 0);
+         $isActive = isset($enabled[$entitiesId]) ? 1 : 0;
+         $DB->doQuery(
+            "INSERT INTO `{$table}` (`entities_id`, `is_active`, `date_creation`, `date_mod`)
+             VALUES ({$entitiesId}, {$isActive}, NOW(), NOW())
+             ON DUPLICATE KEY UPDATE
+                `is_active` = VALUES(`is_active`),
+                `date_mod` = NOW()"
+         );
+         self::$entityEnabledCache[$entitiesId] = $isActive === 1;
+      }
+   }
+
+   public static function isEntityEnabled(int $entitiesId): bool {
+      global $DB;
+
+      if ($entitiesId < 0) {
+         return false;
+      }
+      if (array_key_exists($entitiesId, self::$entityEnabledCache)) {
+         return self::$entityEnabledCache[$entitiesId];
+      }
+
+      self::ensureEntityConfigSchema();
+
+      $table = self::getEntityConfigTable();
+      if (!$DB->tableExists($table)) {
+         return true;
+      }
+
+      $iterator = $DB->request([
+         'SELECT' => ['is_active'],
+         'FROM'   => $table,
+         'WHERE'  => ['entities_id' => $entitiesId],
+         'LIMIT'  => 1,
+      ]);
+      $row = $iterator->current();
+
+      self::$entityEnabledCache[$entitiesId] = $row ? (int) ($row['is_active'] ?? 0) === 1 : false;
+      return self::$entityEnabledCache[$entitiesId];
+   }
+
+   public static function ensureDecisionLogSchema(): void {
+      global $DB;
+
+      if (self::$decisionLogSchemaChecked) {
+         return;
+      }
+
+      $table = self::getDecisionLogsTable();
+      if (!$DB->tableExists($table)) {
+         return;
+      }
+
+      $index = $DB->doQuery("SHOW INDEX FROM `{$table}` WHERE `Key_name` = 'idx_entity_date'");
+      if (!$index || $index->num_rows === 0) {
+         $DB->doQuery("ALTER TABLE `{$table}` ADD KEY `idx_entity_date` (`entities_id`, `date_creation`)");
+      }
+
+      self::$decisionLogSchemaChecked = true;
    }
 
    public static function getDefaultConfig(): array {

@@ -20,6 +20,9 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       if ($usersId <= 0) {
          return null;
       }
+      if (!PluginAtribuicaointeligenteConfig::isEntityEnabled($entitiesId)) {
+         return null;
+      }
 
       $now = $now ?: new DateTimeImmutable('now');
       $entityCalendarReason = self::getEntityCalendarReason($entitiesId, $now);

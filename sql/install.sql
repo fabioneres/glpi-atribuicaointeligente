@@ -23,6 +23,17 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_configs` (
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
+CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_entity_configs` (
+   `id` int unsigned NOT NULL AUTO_INCREMENT,
+   `entities_id` int unsigned NOT NULL DEFAULT 0,
+   `is_active` tinyint NOT NULL DEFAULT 1,
+   `date_creation` timestamp NULL DEFAULT NULL,
+   `date_mod` timestamp NULL DEFAULT NULL,
+   PRIMARY KEY (`id`),
+   UNIQUE KEY `ix_entities_id_uq` (`entities_id`),
+   KEY `idx_entity_active` (`entities_id`, `is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
 INSERT INTO `glpi_plugin_atribuicaointeligente_configs`
    (`id`, `auto_assign_group`, `auto_assign_type`, `auto_assign_mode`, `exclude_managers`, `date_creation`, `date_mod`)
 SELECT 1, 1, 0, 0, 1, NOW(), NOW()
@@ -97,5 +108,6 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_decision_logs` (
    KEY `idx_ticket` (`tickets_id`),
    KEY `idx_group` (`groups_id`),
    KEY `idx_selected_user` (`selected_users_id`),
+   KEY `idx_entity_date` (`entities_id`, `date_creation`),
    KEY `idx_date_creation` (`date_creation`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
