@@ -16,6 +16,7 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
 
    protected $DB;
    protected $assignmentTable;
+   protected static $schemaChecked = false;
 
    public function __construct() {
       global $DB;
@@ -43,8 +44,10 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
          return;
       }
 
+      $this->ensureSchema();
+
       $sql = "INSERT INTO `{$this->assignmentTable}` (`itilcategories_id`, `is_active`)
-              SELECT ic.id, 1
+              SELECT ic.id, 0
               FROM `glpi_itilcategories` ic
               LEFT JOIN `{$this->assignmentTable}` ai
                  ON ai.itilcategories_id = ic.id
@@ -65,14 +68,32 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
          return;
       }
 
+      $this->ensureSchema();
+
       $sql = "INSERT INTO `{$this->assignmentTable}` (`itilcategories_id`, `is_active`)
-              SELECT {$itilCategory}, 1
+              SELECT {$itilCategory}, 0
               WHERE NOT EXISTS (
                  SELECT 1
                  FROM `{$this->assignmentTable}`
                  WHERE `itilcategories_id` = {$itilCategory}
               )";
       $this->executeQuery($sql, 'insertItilCategory');
+   }
+
+   protected function ensureSchema(): void {
+      if (self::$schemaChecked) {
+         return;
+      }
+
+      if (!$this->DB->tableExists($this->assignmentTable)) {
+         return;
+      }
+
+      $this->DB->doQuery(
+         "ALTER TABLE `{$this->assignmentTable}`
+          MODIFY `is_active` tinyint NOT NULL DEFAULT 0"
+      );
+      self::$schemaChecked = true;
    }
 
    public function deleteItilCategory($itilCategory): void {

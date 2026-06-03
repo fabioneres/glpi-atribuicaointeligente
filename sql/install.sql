@@ -35,7 +35,7 @@ WHERE NOT EXISTS (
 CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_assignments` (
    `id` int unsigned NOT NULL AUTO_INCREMENT,
    `itilcategories_id` int unsigned NULL,
-   `is_active` tinyint NOT NULL DEFAULT 1,
+   `is_active` tinyint NOT NULL DEFAULT 0,
    `last_assignment_index` int NULL DEFAULT NULL,
    PRIMARY KEY (`id`),
    UNIQUE KEY `ix_itilcategories_uq` (`itilcategories_id`),

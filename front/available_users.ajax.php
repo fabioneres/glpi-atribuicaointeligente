@@ -23,12 +23,25 @@ if (!class_exists('PluginAtribuicaointeligenteConfig')) {
    require_once dirname(__DIR__) . '/inc/availabilitychecker.class.php';
 }
 
-$request = $_POST;
+$request = $_REQUEST;
 $request['page_limit'] = max((int) ($request['page_limit'] ?? 0), 100);
-$data = Dropdown::getDropdownUsers($request);
-$entitiesId = plugin_atribuicaointeligente_dropdown_entity($_POST['entity_restrict'] ?? 0);
-$data['results'] = plugin_atribuicaointeligente_filter_available_users($data['results'] ?? [], $entitiesId);
-$data['count'] = count($data['results']);
+
+try {
+   $data = Dropdown::getDropdownUsers($request);
+   $entitiesId = plugin_atribuicaointeligente_dropdown_entity($request['entity_restrict'] ?? 0);
+   $data['results'] = plugin_atribuicaointeligente_filter_available_users($data['results'] ?? [], $entitiesId);
+   $data['count'] = plugin_atribuicaointeligente_count_leaf_results($data['results']);
+} catch (Throwable $e) {
+   PluginAtribuicaointeligenteLogger::addError('Falha ao carregar dropdown de tecnicos disponiveis', [
+      'error'   => $e->getMessage(),
+      'request' => $request,
+   ]);
+   $data = [
+      'results' => [],
+      'count'   => 0,
+      'error'   => __('Não foi possível carregar os técnicos disponíveis.', 'atribuicaointeligente'),
+   ];
+}
 
 echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
@@ -78,4 +91,21 @@ function plugin_atribuicaointeligente_filter_available_users(array $results, int
    }
 
    return array_values($filtered);
+}
+
+function plugin_atribuicaointeligente_count_leaf_results(array $results): int {
+   $count = 0;
+
+   foreach ($results as $entry) {
+      if (isset($entry['children']) && is_array($entry['children'])) {
+         $count += plugin_atribuicaointeligente_count_leaf_results($entry['children']);
+         continue;
+      }
+
+      if ((int) ($entry['id'] ?? 0) > 0) {
+         $count++;
+      }
+   }
+
+   return $count;
 }

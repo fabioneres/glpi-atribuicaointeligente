@@ -39,6 +39,14 @@
          return parsed;
       }
 
+      if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+         const parsed = {};
+         data.forEach(function(value, key) {
+            parsed[key] = value;
+         });
+         return parsed;
+      }
+
       return data;
    }
 })();
