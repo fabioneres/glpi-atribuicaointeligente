@@ -62,7 +62,7 @@ Consulte tambem o [ROADMAP.md](ROADMAP.md) para evolucoes planejadas.
   - escopo global ou por entidade.
 - Log de decisões de atribuição com técnico escolhido e técnicos ignorados.
 - Opção para respeitar o calendário de atendimento da entidade; entidades sem calendário continuam em modo 24/7.
-- Filtro de técnicos indisponíveis no campo de atribuição manual do chamado, com bloqueio server-side para gravações diretas.
+- Bloqueio server-side para impedir gravações diretas de técnicos indisponíveis em atribuições manuais.
 - Categorias novas entram inativas por padrão, para que a atribuição automática seja habilitada somente onde desejado.
 
 ## Observação sobre migração
