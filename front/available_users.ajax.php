@@ -27,7 +27,10 @@ $request = $_REQUEST;
 $request['page_limit'] = max((int) ($request['page_limit'] ?? 0), 100);
 
 try {
-   $data = Dropdown::getDropdownUsers($request);
+   $data = Dropdown::getDropdownUsers($request, false);
+   if (!is_array($data)) {
+      throw new RuntimeException('Dropdown::getDropdownUsers nao retornou dados em formato array');
+   }
    $entitiesId = plugin_atribuicaointeligente_dropdown_entity($request['entity_restrict'] ?? 0);
    $data['results'] = plugin_atribuicaointeligente_filter_available_users($data['results'] ?? [], $entitiesId);
    $data['count'] = plugin_atribuicaointeligente_count_leaf_results($data['results']);
