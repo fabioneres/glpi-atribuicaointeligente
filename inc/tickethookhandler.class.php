@@ -17,6 +17,7 @@ class PluginAtribuicaointeligenteTicketHookHandler {
 
    protected $DB;
    protected $assignments;
+   protected static $assignmentInProgress = false;
 
    public function __construct() {
       global $DB;
@@ -88,6 +89,24 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       return $item;
    }
 
+   public static function itemUpdated(CommonDBTM $item) {
+      if ($item->getType() !== 'Ticket') {
+         return $item;
+      }
+
+      if (self::$assignmentInProgress) {
+         return $item;
+      }
+
+      $handler = new self();
+      if ($handler->assignments->getOptionAssignOnUpdate() !== 1) {
+         return $item;
+      }
+
+      $handler->assignTicket($item, 'update');
+      return $item;
+   }
+
    protected function getTicketId(CommonDBTM $item): int {
       return (int) ($item->fields['id'] ?? 0);
    }
@@ -100,7 +119,7 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       return (int) ($item->fields['entities_id'] ?? 0);
    }
 
-   protected function assignTicket(CommonDBTM $item): void {
+   protected function assignTicket(CommonDBTM $item, string $trigger = 'add'): void {
       $ticketId = $this->getTicketId($item);
       $itilcategoriesId = $this->getTicketCategory($item);
       $entitiesId = $this->getTicketEntity($item);
@@ -113,6 +132,15 @@ class PluginAtribuicaointeligenteTicketHookHandler {
          PluginAtribuicaointeligenteLogger::addDebug('Ticket sem categoria valida para atribuicao', [
             'tickets_id' => $ticketId,
             'itilcategories_id' => $itilcategoriesId,
+         ]);
+         return;
+      }
+
+      if (!$this->assignments->isCategoryActive($itilcategoriesId)) {
+         PluginAtribuicaointeligenteLogger::addDebug('Categoria nao habilitada para atribuicao automatica', [
+            'tickets_id' => $ticketId,
+            'itilcategories_id' => $itilcategoriesId,
+            'trigger' => $trigger,
          ]);
          return;
       }
@@ -157,7 +185,10 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       }
 
       $this->setAssignment($ticketId, $userId, $itilcategoriesId);
-      $this->logDecision($ticketId, $groupId, $itilcategoriesId, $entitiesId, $mode, $userId, $ignored, 'Tecnico atribuido automaticamente');
+      $reason = $trigger === 'update'
+         ? 'Tecnico atribuido automaticamente apos atualizacao do chamado'
+         : 'Tecnico atribuido automaticamente';
+      $this->logDecision($ticketId, $groupId, $itilcategoriesId, $entitiesId, $mode, $userId, $ignored, $reason);
    }
 
    protected function chooseByBalancing(int $groupId, int $itilcategoriesId, int $entitiesId): array {
@@ -391,6 +422,9 @@ class PluginAtribuicaointeligenteTicketHookHandler {
    protected function withConflictGuard(callable $fn): void {
       global $PLUGIN_HOOKS;
 
+      $alreadyAssigning = self::$assignmentInProgress;
+      self::$assignmentInProgress = true;
+
       $targets = [
          ['item_add', 'escalade', 'Group_Ticket'],
          ['pre_item_add', 'escalade', 'Group_Ticket'],
@@ -413,6 +447,7 @@ class PluginAtribuicaointeligenteTicketHookHandler {
          foreach ($saved as $i => $value) {
             $PLUGIN_HOOKS[$targets[$i][0]][$targets[$i][1]][$targets[$i][2]] = $value;
          }
+         self::$assignmentInProgress = $alreadyAssigning;
       }
    }
 

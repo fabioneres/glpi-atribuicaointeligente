@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'auto_assign_mode'    => isset($_POST['auto_assign_mode']) ? (int) $_POST['auto_assign_mode'] : 0,
       'exclude_managers'    => isset($_POST['exclude_managers']) ? 1 : 0,
       'use_entity_calendar' => isset($_POST['use_entity_calendar']) ? 1 : 0,
+      'assign_on_update'    => isset($_POST['assign_on_update']) ? 1 : 0,
    ]);
    PluginAtribuicaointeligenteConfig::saveEnabledEntities($_POST['enabled_entities'] ?? []);
 

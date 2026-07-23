@@ -74,6 +74,22 @@ $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
 
                <div class="col-12 col-xl-6">
                   <label class="form-label fw-bold">
+                     <i class="ti ti-reload me-1"></i>
+                     <?php echo __('Atribuir ao atualizar chamado', 'atribuicaointeligente'); ?>
+                  </label>
+                  <div class="form-check form-switch">
+                     <input class="form-check-input" type="checkbox" id="assign_on_update" name="assign_on_update" value="1" <?php echo !empty($config['assign_on_update']) ? 'checked' : ''; ?> <?php echo $canEdit ? '' : 'disabled'; ?>>
+                     <label class="form-check-label" for="assign_on_update">
+                        <?php echo __('Distribuir automaticamente chamados atualizados quando a categoria estiver habilitada e ainda nao houver tecnico atribuido', 'atribuicaointeligente'); ?>
+                     </label>
+                  </div>
+                  <div class="form-text">
+                     <?php echo __('A regra usa as mesmas categorias ativas da aba Categorias e preserva chamados que ja possuem tecnico.', 'atribuicaointeligente'); ?>
+                  </div>
+               </div>
+
+               <div class="col-12 col-xl-6">
+                  <label class="form-label fw-bold">
                      <i class="ti ti-filter me-1"></i>
                      <?php echo __('Tipo de atribuição', 'atribuicaointeligente'); ?>
                   </label>

@@ -20,6 +20,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    public static $rightname = self::RIGHT_CONFIG;
    protected static $entityConfigSchemaChecked = false;
    protected static $decisionLogSchemaChecked = false;
+   protected static $configSchemaChecked = false;
    protected static $entityEnabledCache = [];
 
    public static function getTable($classname = null) {
@@ -533,11 +534,16 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          'auto_assign_mode'    => 0,
          'exclude_managers'    => 1,
          'use_entity_calendar' => 0,
+         'assign_on_update'    => 0,
       ];
    }
 
    public static function ensureConfigSchema(): void {
       global $DB;
+
+      if (self::$configSchemaChecked) {
+         return;
+      }
 
       $table = self::getConfigTable();
       if (!$DB->tableExists($table)) {
@@ -545,11 +551,16 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       }
 
       $result = $DB->doQuery("SHOW COLUMNS FROM `{$table}` LIKE 'use_entity_calendar'");
-      if ($result && $result->num_rows > 0) {
-         return;
+      if (!$result || $result->num_rows === 0) {
+         $DB->doQuery("ALTER TABLE `{$table}` ADD `use_entity_calendar` tinyint NOT NULL DEFAULT 0 AFTER `exclude_managers`");
       }
 
-      $DB->doQuery("ALTER TABLE `{$table}` ADD `use_entity_calendar` tinyint NOT NULL DEFAULT 0 AFTER `exclude_managers`");
+      $result = $DB->doQuery("SHOW COLUMNS FROM `{$table}` LIKE 'assign_on_update'");
+      if (!$result || $result->num_rows === 0) {
+         $DB->doQuery("ALTER TABLE `{$table}` ADD `assign_on_update` tinyint NOT NULL DEFAULT 0 AFTER `use_entity_calendar`");
+      }
+
+      self::$configSchemaChecked = true;
    }
 
    public static function ensureDefaultConfig(): void {
@@ -603,6 +614,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          'auto_assign_mode'    => (int) ($row['auto_assign_mode'] ?? $defaults['auto_assign_mode']),
          'exclude_managers'    => (int) ($row['exclude_managers'] ?? $defaults['exclude_managers']),
          'use_entity_calendar' => (int) ($row['use_entity_calendar'] ?? $defaults['use_entity_calendar']),
+         'assign_on_update'    => (int) ($row['assign_on_update'] ?? $defaults['assign_on_update']),
       ];
    }
 
@@ -617,6 +629,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          'auto_assign_mode'    => (int) $config['auto_assign_mode'],
          'exclude_managers'    => (int) $config['exclude_managers'],
          'use_entity_calendar' => (int) $config['use_entity_calendar'],
+         'assign_on_update'    => (int) $config['assign_on_update'],
          'date_mod'            => date('Y-m-d H:i:s'),
       ];
 

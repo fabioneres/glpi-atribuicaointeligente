@@ -17,7 +17,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.5');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.6');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '10.0.0');
@@ -93,6 +93,10 @@ function plugin_init_atribuicaointeligente() {
    $PLUGIN_HOOKS['item_add']['atribuicaointeligente']['Ticket'] = [
       'PluginAtribuicaointeligenteTicketHookHandler',
       'itemAdded',
+   ];
+   $PLUGIN_HOOKS['item_update']['atribuicaointeligente']['Ticket'] = [
+      'PluginAtribuicaointeligenteTicketHookHandler',
+      'itemUpdated',
    ];
    $PLUGIN_HOOKS['item_add']['atribuicaointeligente']['ITILCategory'] = [
       'PluginAtribuicaointeligenteITILCategoryHookHandler',

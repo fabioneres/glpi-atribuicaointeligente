@@ -12,7 +12,7 @@ Plugin GLPI para atribuição automática de chamados a técnicos por categoria/
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
-- Versão atual: **1.1.5**.
+- Versão atual: **1.1.6**.
 
 ## Referências
 
@@ -44,7 +44,15 @@ O plugin cria o direito `plugin_atribuicaointeligente` em **Administração > Pe
 
 ## Recursos
 
-Consulte tambem o [ROADMAP.md](ROADMAP.md) para evolucoes planejadas.
+Consulte tambem:
+
+- [ROADMAP.md](ROADMAP.md) para evolucoes planejadas;
+- [docs/README.md](docs/README.md) para o indice da documentacao;
+- [docs/HISTORICO.md](docs/HISTORICO.md) para o historico resumido;
+- [docs/RELATORIO_TECNICO.md](docs/RELATORIO_TECNICO.md) para o relatorio tecnico consolidado;
+- [../../../docs/licoes-aprendidas/README.md](../../../docs/licoes-aprendidas/README.md) para licoes aprendidas globais do workspace;
+- [docs/ANTIPADROES.md](docs/ANTIPADROES.md) para antipadroes observados e evitados;
+- [docs/CHECKLIST_DOCUMENTACAO_GLPI10.md](docs/CHECKLIST_DOCUMENTACAO_GLPI10.md) para a conformidade documental com a skill GLPI 10.
 
 - Atribuição automática por balanceamento.
 - Atribuição automática por rodízio.
@@ -64,6 +72,7 @@ Consulte tambem o [ROADMAP.md](ROADMAP.md) para evolucoes planejadas.
 - Habilitacao do plugin por entidade, com reducao de logs e processamento fora do escopo desejado.
 - Paginacao na tela de logs para evitar carregamento excessivo.
 - Opção para respeitar o calendário de atendimento da entidade; entidades sem calendário continuam em modo 24/7.
+- Opcao para atribuir chamados tambem ao atualizar, usando somente categorias ativas e apenas quando o chamado ainda nao possui tecnico.
 - Bloqueio server-side para impedir gravações diretas de técnicos indisponíveis em atribuições manuais.
 - Categorias novas entram inativas por padrão, para que a atribuição automática seja habilitada somente onde desejado.
 

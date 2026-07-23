@@ -120,6 +120,11 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
       return (int) ($config['exclude_managers'] ?? 1);
    }
 
+   public function getOptionAssignOnUpdate(): int {
+      $config = PluginAtribuicaointeligenteConfig::getConfigValues();
+      return (int) ($config['assign_on_update'] ?? 0);
+   }
+
    public function saveOptions(array $options): void {
       PluginAtribuicaointeligenteConfig::saveConfigValues($options);
    }
@@ -147,6 +152,25 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
 
       $groupsId = (int) $row['groups_id'];
       return $groupsId > 0 ? $groupsId : false;
+   }
+
+   public function isCategoryActive($itilCategory): bool {
+      $itilCategory = (int) $itilCategory;
+      if ($itilCategory <= 0) {
+         return false;
+      }
+
+      $iterator = $this->DB->request([
+         'SELECT' => ['is_active'],
+         'FROM'   => $this->assignmentTable,
+         'WHERE'  => [
+            'itilcategories_id' => $itilCategory,
+            'is_active'         => 1,
+         ],
+         'LIMIT' => 1,
+      ]);
+
+      return (bool) $iterator->current();
    }
 
    public function updateLastAssignmentIndexCategoria($itilcategoriesId, $index): void {
