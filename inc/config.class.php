@@ -480,6 +480,31 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       }
    }
 
+   public static function setAllManageableEntitiesActive(bool $isActive): void {
+      global $DB;
+
+      self::ensureEntityConfigSchema();
+
+      $table = self::getEntityConfigTable();
+      if (!$DB->tableExists($table)) {
+         return;
+      }
+
+      $active = $isActive ? 1 : 0;
+      $rows = self::getEntityConfigRows();
+      foreach ($rows as $row) {
+         $entitiesId = (int) ($row['id'] ?? 0);
+         $DB->doQuery(
+            "INSERT INTO `{$table}` (`entities_id`, `is_active`, `date_creation`, `date_mod`)
+             VALUES ({$entitiesId}, {$active}, NOW(), NOW())
+             ON DUPLICATE KEY UPDATE
+                `is_active` = VALUES(`is_active`),
+                `date_mod` = NOW()"
+         );
+         self::$entityEnabledCache[$entitiesId] = $isActive;
+      }
+   }
+
    public static function isEntityEnabled(int $entitiesId): bool {
       global $DB;
 

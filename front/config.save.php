@@ -23,9 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'use_entity_calendar' => isset($_POST['use_entity_calendar']) ? 1 : 0,
       'assign_on_update'    => isset($_POST['assign_on_update']) ? 1 : 0,
    ]);
-   PluginAtribuicaointeligenteConfig::saveEnabledEntities($_POST['enabled_entities'] ?? []);
-
-   Session::addMessageAfterRedirect(__('Configuracoes salvas com sucesso.', 'atribuicaointeligente'), false, INFO);
+   $bulkAction = (string) ($_POST['entity_bulk_action'] ?? '');
+   if ($bulkAction === 'enable_all') {
+      PluginAtribuicaointeligenteConfig::setAllManageableEntitiesActive(true);
+      Session::addMessageAfterRedirect(__('Todas as entidades visiveis foram habilitadas.', 'atribuicaointeligente'), false, INFO);
+   } else if ($bulkAction === 'disable_all') {
+      PluginAtribuicaointeligenteConfig::setAllManageableEntitiesActive(false);
+      Session::addMessageAfterRedirect(__('Todas as entidades visiveis foram desabilitadas.', 'atribuicaointeligente'), false, INFO);
+   } else {
+      PluginAtribuicaointeligenteConfig::saveEnabledEntities($_POST['enabled_entities'] ?? []);
+      Session::addMessageAfterRedirect(__('Configuracoes salvas com sucesso.', 'atribuicaointeligente'), false, INFO);
+   }
 }
 
 $forcetab = $_POST['forcetab'] ?? 'PluginAtribuicaointeligenteConfig$1';

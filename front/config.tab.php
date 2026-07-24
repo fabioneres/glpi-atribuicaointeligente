@@ -127,6 +127,24 @@ $action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
                <div class="form-text mb-2">
                   <?php echo __('A atribuicao automatica e os logs de decisao so serao executados para entidades habilitadas aqui.', 'atribuicaointeligente'); ?>
                </div>
+               <div class="d-flex flex-wrap gap-2 mb-3">
+                  <button type="submit"
+                          name="entity_bulk_action"
+                          value="enable_all"
+                          class="btn btn-outline-success btn-sm"
+                          <?php echo $canEdit ? '' : 'disabled'; ?>>
+                     <i class="ti ti-checks me-1"></i>
+                     <?php echo __('Habilitar todas', 'atribuicaointeligente'); ?>
+                  </button>
+                  <button type="submit"
+                          name="entity_bulk_action"
+                          value="disable_all"
+                          class="btn btn-outline-danger btn-sm"
+                          <?php echo $canEdit ? '' : 'disabled'; ?>>
+                     <i class="ti ti-ban me-1"></i>
+                     <?php echo __('Desabilitar todas', 'atribuicaointeligente'); ?>
+                  </button>
+               </div>
 
                <div class="table-responsive">
                   <table class="table table-sm table-hover align-middle">
