@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_configs` (
 CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_entity_configs` (
    `id` int unsigned NOT NULL AUTO_INCREMENT,
    `entities_id` int unsigned NOT NULL DEFAULT 0,
-   `is_active` tinyint NOT NULL DEFAULT 1,
+   `is_active` tinyint NOT NULL DEFAULT 0,
    `date_creation` timestamp NULL DEFAULT NULL,
    `date_mod` timestamp NULL DEFAULT NULL,
    PRIMARY KEY (`id`),

@@ -10,7 +10,7 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.1.6`
+- Versao atual: `1.1.7`
 - Ultimo commit publicado conhecido: `2407c65 Adiciona habilitacao por entidade e pagina logs`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
@@ -187,8 +187,8 @@ Ativacao por entidade:
 
 Regra atual:
 
-- entidades existentes sao semeadas como ativas na criacao da tabela para
-  preservar comportamento anterior;
+- entidades existentes sao semeadas como inativas na criacao da tabela para
+  evitar distribuicao automatica inesperada em producao;
 - entidades sem linha depois disso sao consideradas inativas;
 - o plugin so atribui, bloqueia manualmente e grava log se a entidade estiver
   ativa.
@@ -362,6 +362,8 @@ Implementada na versao `1.1.5`.
 
 Regras:
 
+- em instalacoes novas, entidades entram inativas por padrao a partir da versao
+  `1.1.7`;
 - entidade inativa nao recebe atribuicao automatica;
 - entidade inativa nao bloqueia atribuicao manual;
 - entidade inativa nao grava logs;

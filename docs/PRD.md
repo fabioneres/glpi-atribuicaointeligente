@@ -6,7 +6,7 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.1.6 - atribuicao opcional em atualizacao de chamado |
+| Versao | 1.1.7 - entidades inativas por padrao em instalacoes novas |
 | Data | 21 de julho de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |
@@ -57,7 +57,7 @@ Ambientes GLPI com grande volume de chamados, equipes e categorias sofrem quando
 | Area | Capacidades atuais |
 | --- | --- |
 | Configuracao | Atribuicao de grupo, tipo de distribuicao, modo de distribuicao, exclusao de gerentes, uso do calendario da entidade e atribuicao opcional ao atualizar chamado. |
-| Entidades | Habilitacao do plugin por entidade, reduzindo processamento e logs fora do escopo desejado. |
+| Entidades | Habilitacao manual do plugin por entidade, reduzindo processamento e logs fora do escopo desejado. Entidades entram inativas por padrao em instalacoes novas. |
 | Categorias | Sincronizacao de categorias ITIL e ativacao manual das categorias controladas pelo plugin. |
 | Distribuicao | Atribuicao automatica por balanceamento ou rodizio, usando categoria ITIL e grupo responsavel, na criacao e opcionalmente na atualizacao do chamado. |
 | Disponibilidade | Cadastro de ferias, ausencias temporarias, datas especificas e recorrencias semanais. |

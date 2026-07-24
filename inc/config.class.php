@@ -353,7 +353,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
             "CREATE TABLE IF NOT EXISTS `{$table}` (
                `id` int unsigned NOT NULL AUTO_INCREMENT,
                `entities_id` int unsigned NOT NULL DEFAULT 0,
-               `is_active` tinyint NOT NULL DEFAULT 1,
+               `is_active` tinyint NOT NULL DEFAULT 0,
                `date_creation` timestamp NULL DEFAULT NULL,
                `date_mod` timestamp NULL DEFAULT NULL,
                PRIMARY KEY (`id`),
@@ -363,6 +363,8 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          );
          $created = true;
       }
+
+      $DB->doQuery("ALTER TABLE `{$table}` MODIFY `is_active` tinyint NOT NULL DEFAULT 0");
 
       if ($created || self::isEntityConfigTableEmpty()) {
          self::seedExistingEntityConfigs();
@@ -393,7 +395,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
       $DB->doQuery(
          "INSERT INTO `{$table}` (`entities_id`, `is_active`, `date_creation`, `date_mod`)
-          SELECT ent.`id`, 1, NOW(), NOW()
+          SELECT ent.`id`, 0, NOW(), NOW()
           FROM `glpi_entities` ent
           LEFT JOIN `{$table}` cfg
              ON cfg.`entities_id` = ent.`id`
@@ -492,7 +494,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
       $table = self::getEntityConfigTable();
       if (!$DB->tableExists($table)) {
-         return true;
+         return false;
       }
 
       $iterator = $DB->request([
