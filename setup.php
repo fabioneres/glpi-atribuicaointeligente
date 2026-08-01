@@ -17,7 +17,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.8');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.9');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '10.0.0');
@@ -53,6 +53,7 @@ function plugin_init_atribuicaointeligente() {
    require_once __DIR__ . '/inc/technicianunavailability.class.php';
    require_once __DIR__ . '/inc/technicianworkschedule.class.php';
    require_once __DIR__ . '/inc/assignmentdecisionlog.class.php';
+   require_once __DIR__ . '/inc/distributionlog.class.php';
    require_once __DIR__ . '/inc/availabilitychecker.class.php';
    require_once __DIR__ . '/inc/tickethookhandler.class.php';
    require_once __DIR__ . '/inc/itilcategoryhookhandler.class.php';
@@ -63,6 +64,7 @@ function plugin_init_atribuicaointeligente() {
    Plugin::registerClass('PluginAtribuicaointeligenteTechnicianUnavailability');
    Plugin::registerClass('PluginAtribuicaointeligenteTechnicianWorkSchedule');
    Plugin::registerClass('PluginAtribuicaointeligenteAssignmentDecisionLog');
+   Plugin::registerClass('PluginAtribuicaointeligenteDistributionLog');
 
    if (Session::getLoginUserID()) {
       PluginAtribuicaointeligenteProfile::syncCurrentProfileRight();
@@ -90,9 +92,21 @@ function plugin_init_atribuicaointeligente() {
       'PluginAtribuicaointeligenteTicketHookHandler',
       'preTicketUserAdd',
    ];
+   $PLUGIN_HOOKS['pre_item_update']['atribuicaointeligente']['Ticket'] = [
+      'PluginAtribuicaointeligenteTicketHookHandler',
+      'preItemUpdate',
+   ];
    $PLUGIN_HOOKS['item_add']['atribuicaointeligente']['Ticket'] = [
       'PluginAtribuicaointeligenteTicketHookHandler',
       'itemAdded',
+   ];
+   $PLUGIN_HOOKS['item_add']['atribuicaointeligente']['Ticket_User'] = [
+      'PluginAtribuicaointeligenteTicketHookHandler',
+      'ticketUserAdded',
+   ];
+   $PLUGIN_HOOKS['item_add']['atribuicaointeligente']['Group_Ticket'] = [
+      'PluginAtribuicaointeligenteTicketHookHandler',
+      'groupTicketAdded',
    ];
    $PLUGIN_HOOKS['item_update']['atribuicaointeligente']['Ticket'] = [
       'PluginAtribuicaointeligenteTicketHookHandler',

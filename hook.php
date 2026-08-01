@@ -15,7 +15,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.8');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.1.9');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_DIR')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_DIR', __DIR__);
@@ -29,6 +29,7 @@ require_once __DIR__ . '/inc/categoryassignment.class.php';
 require_once __DIR__ . '/inc/technicianunavailability.class.php';
 require_once __DIR__ . '/inc/technicianworkschedule.class.php';
 require_once __DIR__ . '/inc/assignmentdecisionlog.class.php';
+require_once __DIR__ . '/inc/distributionlog.class.php';
 
 function plugin_atribuicaointeligente_install() {
    global $DB;
@@ -57,6 +58,7 @@ function plugin_atribuicaointeligente_install() {
          PluginAtribuicaointeligenteConfig::ensureDefaultConfig();
          PluginAtribuicaointeligenteConfig::ensureEntityConfigSchema();
          PluginAtribuicaointeligenteConfig::ensureDecisionLogSchema();
+         PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
       },
       'migrate_nextool' => function() {
          PluginAtribuicaointeligenteConfig::migrateFromNextool();

@@ -24,7 +24,7 @@ if (!function_exists('plugin_atribuicaointeligente_logs_pager')) {
          ? PluginAtribuicaointeligenteConfig::getFormURL(true)
          : $_SERVER['PHP_SELF'];
       $parameters = $embedded
-         ? http_build_query(['forcetab' => 'PluginAtribuicaointeligenteConfig$5'])
+         ? http_build_query(['forcetab' => 'PluginAtribuicaointeligenteConfig$6'])
          : '';
 
       $previousLimit = $_SESSION['glpilist_limit'] ?? null;

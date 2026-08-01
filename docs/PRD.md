@@ -6,8 +6,8 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.1.8 - acoes rapidas de seguranca para entidades |
-| Data | 21 de julho de 2026 |
+| Versao | 1.1.9 - relatorio e rastreabilidade de distribuicoes |
+| Data | 1 de agosto de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |
 | Objetivo desta versao | Consolidar o entendimento de produto da versao atual e orientar evolucoes futuras sem autorizar mudancas automaticas de codigo. |
@@ -29,6 +29,7 @@ Ambientes GLPI com grande volume de chamados, equipes e categorias sofrem quando
 - Diminuir o tempo entre abertura do chamado e primeira atribuicao.
 - Preservar a atribuicao manual quando ela ja tiver sido definida.
 - Registrar logs claros sobre tecnico escolhido, tecnicos ignorados e motivo.
+- Permitir auditoria de quem distribuiu chamados, para qual tecnico/grupo ou para outra entidade.
 - Controlar em quais entidades o plugin atua.
 
 ## 3. Objetivos
@@ -62,7 +63,7 @@ Ambientes GLPI com grande volume de chamados, equipes e categorias sofrem quando
 | Distribuicao | Atribuicao automatica por balanceamento ou rodizio, usando categoria ITIL e grupo responsavel, na criacao e opcionalmente na atualizacao do chamado. |
 | Disponibilidade | Cadastro de ferias, ausencias temporarias, datas especificas e recorrencias semanais. |
 | Escala | Cadastro de horarios semanais por tecnico, entidade, periodo de validade e status ativo/inativo. |
-| Auditoria | Log paginado de decisoes com chamado, entidade, grupo, tecnico escolhido, tecnicos ignorados e motivo. |
+| Auditoria | Log paginado de decisoes com chamado, entidade, grupo, tecnico escolhido, tecnicos ignorados e motivo; relatorio de distribuicoes com filtros por periodo, distribuidor, tecnico destino, grupo, entidade, categoria, chamado, origem manual/plugin e tipo de acao. |
 | Protecao backend | Bloqueio server-side de atribuicao manual para tecnico indisponivel quando a entidade esta ativa. |
 
 ### 4.2 Escopo proposto para evolucao

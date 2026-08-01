@@ -10,7 +10,7 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.1.8`
+- Versao atual: `1.1.9`
 - Ultimo commit publicado conhecido: `2407c65 Adiciona habilitacao por entidade e pagina logs`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
@@ -40,6 +40,7 @@ A proposta final do plugin e:
 - opcionalmente atribuir chamado atualizado quando a categoria ativa for informada e ainda nao houver tecnico;
 - funcionar apenas em entidades habilitadas;
 - registrar logs das decisoes;
+- registrar auditoria de distribuicoes manuais, automaticas e transferencias de entidade;
 - preservar atribuicoes manuais ja existentes;
 - nao alterar core do GLPI;
 - nao alterar schema de tabelas nativas.
@@ -77,6 +78,10 @@ Hooks principais:
 - `pre_item_add` em `Ticket`;
 - `pre_item_add` em `Ticket_User`;
 - `item_add` em `Ticket`;
+- `pre_item_update` em `Ticket`;
+- `item_update` em `Ticket`;
+- `item_add` em `Ticket_User`;
+- `item_add` em `Group_Ticket`;
 - `item_add`, `item_delete` e `item_purge` em `ITILCategory`;
 - `use_massive_action`.
 
@@ -258,6 +263,32 @@ Indices relevantes:
 - `idx_selected_user`;
 - `idx_entity_date`;
 - `idx_date_creation`.
+
+### glpi_plugin_atribuicaointeligente_distribution_logs
+
+Auditoria de distribuicoes manuais e automaticas:
+
+- `tickets_id`;
+- `action_type`;
+- `source`;
+- `users_id_actor`;
+- `users_id_to`;
+- `groups_id_to`;
+- `entities_id`;
+- `entities_id_from`;
+- `entities_id_to`;
+- `itilcategories_id`;
+- `date_creation`.
+
+A tela de Distribuicoes usa essa tabela para filtrar por periodo, distribuidor,
+tecnico destino, grupo, entidade do chamado, entidade origem da transferencia,
+categoria, origem manual/plugin e tipo de acao. Por decisao de performance, a
+tela exibe apenas totais e resumo por distribuidor, sem listar eventos
+detalhados. A visao gerencial inclui distribuicao por tecnico, top 5
+distribuidores, evolucao no periodo, manual x plugin, transferencias por
+entidade e top 5 tecnicos destino. Os indices principais cobrem ticket,
+distribuidor/data, acao/data, entidade/data, tecnico destino/data e grupo
+destino/data.
 
 ## Funcionalidades implementadas
 

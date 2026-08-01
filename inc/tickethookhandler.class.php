@@ -18,6 +18,7 @@ class PluginAtribuicaointeligenteTicketHookHandler {
    protected $DB;
    protected $assignments;
    protected static $assignmentInProgress = false;
+   protected static $ticketSnapshots = [];
 
    public function __construct() {
       global $DB;
@@ -26,6 +27,31 @@ class PluginAtribuicaointeligenteTicketHookHandler {
    }
 
    public static function preItemAdd(CommonDBTM $item) {
+      return $item;
+   }
+
+   public static function isAssignmentInProgress(): bool {
+      return self::$assignmentInProgress;
+   }
+
+   public static function preItemUpdate(CommonDBTM $item) {
+      if ($item->getType() !== 'Ticket') {
+         return $item;
+      }
+
+      $ticketsId = (int) ($item->fields['id'] ?? $item->input['id'] ?? 0);
+      if ($ticketsId <= 0) {
+         return $item;
+      }
+
+      $ticket = new Ticket();
+      if ($ticket->getFromDB($ticketsId)) {
+         self::$ticketSnapshots[$ticketsId] = [
+            'entities_id'       => (int) ($ticket->fields['entities_id'] ?? 0),
+            'itilcategories_id' => (int) ($ticket->fields['itilcategories_id'] ?? 0),
+         ];
+      }
+
       return $item;
    }
 
@@ -89,6 +115,24 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       return $item;
    }
 
+   public static function ticketUserAdded(CommonDBTM $item) {
+      if ($item->getType() !== 'Ticket_User' || self::isAssignmentInProgress()) {
+         return $item;
+      }
+
+      PluginAtribuicaointeligenteDistributionLog::logTicketUserAdd($item);
+      return $item;
+   }
+
+   public static function groupTicketAdded(CommonDBTM $item) {
+      if ($item->getType() !== 'Group_Ticket' || self::isAssignmentInProgress()) {
+         return $item;
+      }
+
+      PluginAtribuicaointeligenteDistributionLog::logGroupTicketAdd($item);
+      return $item;
+   }
+
    public static function itemUpdated(CommonDBTM $item) {
       if ($item->getType() !== 'Ticket') {
          return $item;
@@ -99,12 +143,38 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       }
 
       $handler = new self();
+      $handler->logTicketUpdateDistribution($item);
+
       if ($handler->assignments->getOptionAssignOnUpdate() !== 1) {
          return $item;
       }
 
       $handler->assignTicket($item, 'update');
       return $item;
+   }
+
+   protected function logTicketUpdateDistribution(CommonDBTM $item): void {
+      $ticketId = $this->getTicketId($item);
+      if ($ticketId <= 0 || !isset(self::$ticketSnapshots[$ticketId])) {
+         return;
+      }
+
+      $old = self::$ticketSnapshots[$ticketId];
+      unset(self::$ticketSnapshots[$ticketId]);
+
+      $oldEntityId = (int) ($old['entities_id'] ?? 0);
+      $newEntityId = $this->getTicketEntity($item);
+      $ticket = new Ticket();
+      if ($ticket->getFromDB($ticketId)) {
+         $newEntityId = (int) ($ticket->fields['entities_id'] ?? $newEntityId);
+      }
+      if ($oldEntityId !== $newEntityId) {
+         PluginAtribuicaointeligenteDistributionLog::logTicketEntityTransfer(
+            $ticketId,
+            $oldEntityId,
+            $newEntityId
+         );
+      }
    }
 
    protected function getTicketId(CommonDBTM $item): int {
@@ -369,12 +439,20 @@ class PluginAtribuicaointeligenteTicketHookHandler {
             'type'       => CommonITILActor::ASSIGN,
          ]);
 
-         $ticketUser->add([
+         $added = $ticketUser->add([
             'tickets_id'        => $ticketId,
             'users_id'          => $userId,
             'type'              => CommonITILActor::ASSIGN,
             'use_notification'  => 1,
          ]);
+         if ($added) {
+            PluginAtribuicaointeligenteDistributionLog::addLog([
+               'tickets_id'  => $ticketId,
+               'action_type' => PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED,
+               'source'      => PluginAtribuicaointeligenteDistributionLog::SOURCE_PLUGIN,
+               'users_id_to' => $userId,
+            ]);
+         }
 
          $ticket = new Ticket();
          if ($ticket->getFromDB($ticketId) && (int) $ticket->fields['status'] === Ticket::INCOMING) {
@@ -412,11 +490,19 @@ class PluginAtribuicaointeligenteTicketHookHandler {
          return;
       }
 
-      $groupTicket->add([
+      $added = $groupTicket->add([
          'tickets_id' => (int) $ticketId,
          'groups_id'  => (int) $groupId,
          'type'       => CommonITILActor::ASSIGN,
       ]);
+      if ($added) {
+         PluginAtribuicaointeligenteDistributionLog::addLog([
+            'tickets_id'    => (int) $ticketId,
+            'action_type'   => PluginAtribuicaointeligenteDistributionLog::ACTION_GROUP_ASSIGNED,
+            'source'        => PluginAtribuicaointeligenteDistributionLog::SOURCE_PLUGIN,
+            'groups_id_to'  => (int) $groupId,
+         ]);
+      }
    }
 
    protected function withConflictGuard(callable $fn): void {

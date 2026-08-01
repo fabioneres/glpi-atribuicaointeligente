@@ -88,7 +88,7 @@ if (!defined('GLPI_ROOT')) {
             <li><?php echo __('Em Configuracoes, escolha o modo de distribuicao: balanceamento ou rodizio.', 'atribuicaointeligente'); ?></li>
             <li><?php echo __('Cadastre indisponibilidades dos tecnicos quando houver ferias, ausencias ou recorrencias por dia da semana.', 'atribuicaointeligente'); ?></li>
             <li><?php echo __('Cadastre escalas de atendimento apenas quando quiser limitar o recebimento de chamados por dia e horario.', 'atribuicaointeligente'); ?></li>
-            <li><?php echo __('Use a aba Logs para conferir por que um tecnico foi escolhido ou ignorado.', 'atribuicaointeligente'); ?></li>
+            <li><?php echo __('Use a aba Distribuicoes para auditar quem distribuiu chamados e a aba Logs para conferir por que um tecnico foi escolhido ou ignorado.', 'atribuicaointeligente'); ?></li>
          </ol>
       </div>
    </div>

@@ -112,3 +112,27 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_decision_logs` (
    KEY `idx_entity_date` (`entities_id`, `date_creation`),
    KEY `idx_date_creation` (`date_creation`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS `glpi_plugin_atribuicaointeligente_distribution_logs` (
+   `id` int unsigned NOT NULL AUTO_INCREMENT,
+   `tickets_id` int unsigned NOT NULL DEFAULT 0,
+   `action_type` varchar(32) NOT NULL,
+   `source` varchar(32) NOT NULL DEFAULT 'manual',
+   `users_id_actor` int unsigned NOT NULL DEFAULT 0,
+   `users_id_from` int unsigned NULL DEFAULT NULL,
+   `users_id_to` int unsigned NULL DEFAULT NULL,
+   `groups_id_from` int unsigned NULL DEFAULT NULL,
+   `groups_id_to` int unsigned NULL DEFAULT NULL,
+   `entities_id` int unsigned NOT NULL DEFAULT 0,
+   `entities_id_from` int unsigned NULL DEFAULT NULL,
+   `entities_id_to` int unsigned NULL DEFAULT NULL,
+   `itilcategories_id` int unsigned NULL DEFAULT NULL,
+   `date_creation` timestamp NULL DEFAULT NULL,
+   PRIMARY KEY (`id`),
+   KEY `idx_ticket` (`tickets_id`),
+   KEY `idx_actor_date` (`users_id_actor`, `date_creation`),
+   KEY `idx_action_date` (`action_type`, `date_creation`),
+   KEY `idx_entity_date` (`entities_id`, `date_creation`),
+   KEY `idx_user_to_date` (`users_id_to`, `date_creation`),
+   KEY `idx_group_to_date` (`groups_id_to`, `date_creation`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;

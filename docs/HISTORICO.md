@@ -11,7 +11,7 @@ NexTool, transformado em plugin independente para GLPI 10. Ele preserva a
 logica original de atribuicao automatica e acrescenta regras de
 disponibilidade, escala e controle por entidade.
 
-Estado atual: plugin funcional em homologacao, versao **1.1.5**, publicado em
+Estado atual: plugin funcional em homologacao, versao **1.1.9**, publicado em
 repositorio privado como `glpi-atribuicaointeligente`.
 
 ## Objetivo
@@ -25,7 +25,8 @@ Automatizar a atribuicao de chamados no GLPI considerando:
 - escala de atendimento;
 - calendario da entidade, quando habilitado;
 - entidade onde o plugin esta ativo;
-- preservacao de atribuicoes manuais ja existentes.
+- preservacao de atribuicoes manuais ja existentes;
+- rastreabilidade de distribuicoes manuais, automaticas e transferencias de entidade.
 
 A ideia central e distribuir chamados automaticamente sem remover tecnicos dos
 grupos e sem alterar o core do GLPI.
@@ -74,6 +75,7 @@ responsabilidades em classes especificas:
 - indisponibilidades;
 - escala de atendimento;
 - logs de decisao;
+- logs de distribuicao;
 - hooks de ticket;
 - permissoes por perfil.
 
