@@ -81,6 +81,32 @@ if ((int) substr((string) $forcetab, -1) === 3) {
    ];
 }
 
+if ((int) substr((string) $forcetab, -1) === 5) {
+   $distributionFilterKey = 'plugin_atribuicaointeligente_distribution_filters';
+   $distributionFilterFields = [
+      'date_start',
+      'date_end',
+      'users_id_actor',
+      'users_id_to',
+      'groups_id_to',
+      'entities_id',
+      'entities_id_from',
+      'itilcategories_id',
+      'action_type',
+      'distribution_source',
+      'source',
+   ];
+
+   if (!empty($_GET['distribution_clear'])) {
+      unset($_SESSION[$distributionFilterKey]);
+   } elseif (isset($_GET['distribution_filter'])) {
+      $_SESSION[$distributionFilterKey] = array_intersect_key(
+         $_GET,
+         array_flip($distributionFilterFields)
+      );
+   }
+}
+
 $item->display([
    'id'       => $id,
    'target'   => PluginAtribuicaointeligenteConfig::getFormURL(false),

@@ -6,7 +6,7 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.2.1 - refinamento do relatorio gerencial de distribuicoes |
+| Versao | 1.2.2 - persistencia de filtros e classificacao gerencial |
 | Data | 20 de agosto de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |

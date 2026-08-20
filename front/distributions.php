@@ -53,6 +53,68 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_date')) {
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_filter_fields')) {
+   function plugin_atribuicaointeligente_distribution_filter_fields(): array {
+      return [
+         'date_start',
+         'date_end',
+         'users_id_actor',
+         'users_id_to',
+         'groups_id_to',
+         'entities_id',
+         'entities_id_from',
+         'itilcategories_id',
+         'action_type',
+         'distribution_source',
+         'source',
+      ];
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_distribution_has_request_filters')) {
+   function plugin_atribuicaointeligente_distribution_has_request_filters(): bool {
+      if (isset($_GET['distribution_filter'])) {
+         return true;
+      }
+
+      foreach (plugin_atribuicaointeligente_distribution_filter_fields() as $field) {
+         if (array_key_exists($field, $_GET)) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_distribution_normalize_filters')) {
+   function plugin_atribuicaointeligente_distribution_normalize_filters(array $input): array {
+      $distributionSource = (string) ($input['distribution_source'] ?? ($input['source'] ?? ''));
+
+      $filters = [
+         'date_start'        => plugin_atribuicaointeligente_distribution_date((string) ($input['date_start'] ?? date('Y-m-01'))),
+         'date_end'          => plugin_atribuicaointeligente_distribution_date((string) ($input['date_end'] ?? date('Y-m-d'))),
+         'users_id_actor'    => max(0, (int) ($input['users_id_actor'] ?? 0)),
+         'users_id_to'       => max(0, (int) ($input['users_id_to'] ?? 0)),
+         'groups_id_to'      => max(0, (int) ($input['groups_id_to'] ?? 0)),
+         'entities_id'       => array_key_exists('entities_id', $input) && $input['entities_id'] !== '' ? max(0, (int) $input['entities_id']) : '',
+         'entities_id_from'  => array_key_exists('entities_id_from', $input) && $input['entities_id_from'] !== '' ? max(0, (int) $input['entities_id_from']) : '',
+         'itilcategories_id' => max(0, (int) ($input['itilcategories_id'] ?? 0)),
+         'action_type'       => (string) ($input['action_type'] ?? ''),
+         'source'            => $distributionSource,
+      ];
+
+      if (!in_array($filters['action_type'], array_merge([''], PluginAtribuicaointeligenteDistributionLog::getAllowedActions()), true)) {
+         $filters['action_type'] = '';
+      }
+      if (!in_array($filters['source'], array_merge([''], PluginAtribuicaointeligenteDistributionLog::getAllowedSources()), true)) {
+         $filters['source'] = '';
+      }
+
+      return $filters;
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_distribution_filter_url')) {
    function plugin_atribuicaointeligente_distribution_filter_url(bool $embedded, array $filters): string {
       $target = $embedded
@@ -220,26 +282,19 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_technician_log_w
 
 $embedded = !empty($_GET['embedded']);
 $table = PluginAtribuicaointeligenteDistributionLog::getTable();
-$distributionSource = (string) ($_GET['distribution_source'] ?? ($_GET['source'] ?? ''));
 
-$filters = [
-   'date_start'        => plugin_atribuicaointeligente_distribution_date((string) ($_GET['date_start'] ?? date('Y-m-01'))),
-   'date_end'          => plugin_atribuicaointeligente_distribution_date((string) ($_GET['date_end'] ?? date('Y-m-d'))),
-   'users_id_actor'    => max(0, (int) ($_GET['users_id_actor'] ?? 0)),
-   'users_id_to'       => max(0, (int) ($_GET['users_id_to'] ?? 0)),
-   'groups_id_to'      => max(0, (int) ($_GET['groups_id_to'] ?? 0)),
-   'entities_id'       => array_key_exists('entities_id', $_GET) && $_GET['entities_id'] !== '' ? max(0, (int) $_GET['entities_id']) : '',
-   'entities_id_from'  => array_key_exists('entities_id_from', $_GET) && $_GET['entities_id_from'] !== '' ? max(0, (int) $_GET['entities_id_from']) : '',
-   'itilcategories_id' => max(0, (int) ($_GET['itilcategories_id'] ?? 0)),
-   'action_type'       => (string) ($_GET['action_type'] ?? ''),
-   'source'            => $distributionSource,
-];
-
-if (!in_array($filters['action_type'], array_merge([''], PluginAtribuicaointeligenteDistributionLog::getAllowedActions()), true)) {
-   $filters['action_type'] = '';
+$filterSessionKey = 'plugin_atribuicaointeligente_distribution_filters';
+if (!empty($_GET['distribution_clear'])) {
+   unset($_SESSION[$filterSessionKey]);
 }
-if (!in_array($filters['source'], array_merge([''], PluginAtribuicaointeligenteDistributionLog::getAllowedSources()), true)) {
-   $filters['source'] = '';
+
+if (empty($_GET['distribution_clear']) && plugin_atribuicaointeligente_distribution_has_request_filters()) {
+   $filters = plugin_atribuicaointeligente_distribution_normalize_filters($_GET);
+   $_SESSION[$filterSessionKey] = $filters;
+} elseif (isset($_SESSION[$filterSessionKey]) && is_array($_SESSION[$filterSessionKey])) {
+   $filters = plugin_atribuicaointeligente_distribution_normalize_filters($_SESSION[$filterSessionKey]);
+} else {
+   $filters = plugin_atribuicaointeligente_distribution_normalize_filters([]);
 }
 
 PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
@@ -257,7 +312,7 @@ $actuationRows = [
       'total_events'  => 0,
    ],
    'plugin_human' => [
-      'label'        => __('Atuação assistida', 'atribuicaointeligente'),
+      'label'        => __('Automação parcial', 'atribuicaointeligente'),
       'tickets_count' => 0,
       'total_events'  => 0,
    ],
@@ -350,16 +405,15 @@ if ($DB->tableExists($table)) {
              SELECT ticket_summary.`tickets_id`,
                     ticket_summary.`total_events`,
                     CASE
-                       WHEN (ticket_summary.`manual_technician_events` > 0
-                              OR ticket_summary.`technician_changes` > 0)
-                            AND ticket_summary.`category_changes` > 0
+                       WHEN ticket_summary.`manual_technician_events` > 0
                           THEN 'human_only'
                        WHEN ticket_summary.`plugin_events` > 0
-                            AND ticket_summary.`manual_events` = 0
-                          THEN 'plugin_only'
-                       WHEN ticket_summary.`plugin_events` > 0
-                            AND ticket_summary.`manual_events` > 0
+                            AND (ticket_summary.`manual_events` > 0
+                                 OR ticket_summary.`category_changes` > 0
+                                 OR ticket_summary.`technician_changes` > 0)
                           THEN 'plugin_human'
+                       WHEN ticket_summary.`plugin_events` > 0
+                          THEN 'plugin_only'
                        ELSE 'human_only'
                     END AS classification
              FROM (
@@ -439,6 +493,7 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
       <?php if ($embedded): ?>
          <?php echo Html::hidden('forcetab', ['value' => 'PluginAtribuicaointeligenteConfig$5']); ?>
       <?php endif; ?>
+      <?php echo Html::hidden('distribution_filter', ['value' => '1']); ?>
       <div class="card-body">
          <div class="row g-3">
             <div class="col-12 col-md-3">
@@ -536,7 +591,7 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
             <i class="ti ti-filter me-1"></i>
             <?php echo __('Filtrar', 'atribuicaointeligente'); ?>
          </button>
-         <a class="btn btn-outline-secondary" href="<?php echo plugin_atribuicaointeligente_distribution_escape(plugin_atribuicaointeligente_distribution_filter_url($embedded, [])); ?>">
+         <a class="btn btn-outline-secondary" href="<?php echo plugin_atribuicaointeligente_distribution_escape(plugin_atribuicaointeligente_distribution_filter_url($embedded, ['distribution_clear' => 1])); ?>">
             <i class="ti ti-x me-1"></i>
             <?php echo __('Limpar', 'atribuicaointeligente'); ?>
          </a>
