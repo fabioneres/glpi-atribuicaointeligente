@@ -10,8 +10,8 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.2.0`
-- Ultima release documentada: `v1.2.0`
+- Versao atual: `1.2.1`
+- Ultima release documentada: `v1.2.1`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
 - VM de homologacao: `192.168.159.129`
@@ -285,10 +285,25 @@ tecnico destino, grupo, entidade do chamado, entidade origem da transferencia,
 categoria, origem manual/plugin e tipo de acao. Por decisao de performance, a
 tela exibe apenas totais e resumo por distribuidor, sem listar eventos
 detalhados. A visao gerencial inclui distribuicao por tecnico, top 5
-distribuidores, evolucao no periodo, manual x plugin, transferencias por
+distribuidores, evolucao no periodo, atuacao por chamado, transferencias por
 entidade e top 5 tecnicos destino. Os indices principais cobrem ticket,
 distribuidor/data, acao/data, entidade/data, tecnico destino/data e grupo
 destino/data.
+
+Por clareza operacional, o resumo por distribuidor exibe apenas os 5 maiores
+distribuidores do periodo, ordenados por quantidade de chamados em ordem
+decrescente. A distribuicao por tecnico e limitada aos 10 tecnicos com maior
+volume de distribuicao. A classificacao de atuacao por chamado tambem e exibida
+em ordem decrescente de chamados.
+
+A classificacao "Atuacao por chamado" e calculada no nivel do chamado, nao no
+nivel do evento. Ela separa chamados em Automacao integral, Atuacao assistida e
+Atuacao manual. Quando o historico do GLPI indica alteracao de categoria e
+alteracao de tecnico no mesmo chamado dentro do periodo filtrado, o chamado e
+classificado como Atuacao manual, mesmo que tenha existido sugestao ou atuacao
+previa do plugin.
+Os nomes de entidade sao decodificados antes da exibicao para evitar sequencias
+HTML como `&#62;` no caminho hierarquico.
 
 ## Funcionalidades implementadas
 

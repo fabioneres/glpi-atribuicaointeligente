@@ -12,7 +12,7 @@ Plugin GLPI para atribuição automática de chamados a técnicos por categoria/
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
-- Versão atual: **1.2.0**.
+- Versão atual: **1.2.1**.
 
 ## Referências
 
@@ -73,7 +73,7 @@ Consulte tambem:
   - validade opcional por período;
   - escopo global ou por entidade.
 - Log de decisões de atribuição com técnico escolhido e técnicos ignorados.
-- Relatorio de distribuicoes com filtros por periodo, distribuidor, tecnico destino, grupo, entidade, categoria, chamado, origem manual/plugin e tipo de acao.
+- Relatorio de distribuicoes com filtros por periodo, distribuidor, tecnico destino, grupo, entidade, categoria, chamado, origem manual/plugin, tipo de acao e classificacao gerencial em Automacao integral, Atuacao assistida e Atuacao manual, com resumos limitados e ordenados por maior volume de chamados.
 - Habilitacao do plugin por entidade, com reducao de logs e processamento fora do escopo desejado.
 - Entidades entram inativas por padrao em instalacoes novas; habilite manualmente apenas as entidades desejadas.
 - Acoes rapidas para habilitar ou desabilitar todas as entidades visiveis de uma vez.

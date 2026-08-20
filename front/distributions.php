@@ -20,6 +20,33 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_escape')) {
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_decode_label')) {
+   function plugin_atribuicaointeligente_distribution_decode_label($value): string {
+      $label = (string) $value;
+      for ($i = 0; $i < 2; $i++) {
+         $decoded = html_entity_decode($label, ENT_QUOTES, 'UTF-8');
+         if ($decoded === $label) {
+            break;
+         }
+         $label = $decoded;
+      }
+
+      return $label;
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_distribution_entity_label')) {
+   function plugin_atribuicaointeligente_distribution_entity_label($entitiesId): string {
+      $entitiesId = (int) $entitiesId;
+      if ($entitiesId <= 0) {
+         return __('Todas / global', 'atribuicaointeligente');
+      }
+
+      $label = Dropdown::getDropdownName('glpi_entities', $entitiesId);
+      return plugin_atribuicaointeligente_distribution_decode_label($label !== '' ? $label : $entitiesId);
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_distribution_date')) {
    function plugin_atribuicaointeligente_distribution_date(string $value): string {
       return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : '';
@@ -63,6 +90,7 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_entity_dropdown'
             if ($entityName === '') {
                $entityName = (string) ($row['name'] ?? $entityId);
             }
+            $entityName = plugin_atribuicaointeligente_distribution_decode_label($entityName);
             $selected = $value !== '' && (int) $value === $entityId ? ' selected' : '';
             echo '<option value="' . $entityId . '"' . $selected . '>' . plugin_atribuicaointeligente_distribution_escape($entityName) . '</option>';
          }
@@ -108,8 +136,9 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_bar')) {
 }
 
 if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
-   function plugin_atribuicaointeligente_distribution_where(array $filters): string {
+   function plugin_atribuicaointeligente_distribution_where(array $filters, string $alias = ''): string {
       $clauses = ['1 = 1'];
+      $prefix = $alias !== '' ? '`' . preg_replace('/[^a-zA-Z0-9_]/', '', $alias) . '`.' : '';
 
       if (!Session::canViewAllEntities()) {
          $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
@@ -120,32 +149,69 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
          if (empty($entities)) {
             $entities = [0];
          }
-         $clauses[] = '`entities_id` IN (' . implode(',', $entities) . ')';
+         $clauses[] = $prefix . '`entities_id` IN (' . implode(',', $entities) . ')';
       }
 
       if ($filters['date_start'] !== '') {
-         $clauses[] = "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+         $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
       }
       if ($filters['date_end'] !== '') {
-         $clauses[] = "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+         $clauses[] = $prefix . "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
       }
 
       foreach (['users_id_actor', 'users_id_to', 'groups_id_to', 'itilcategories_id'] as $field) {
          if ((int) ($filters[$field] ?? 0) > 0) {
-            $clauses[] = "`{$field}` = " . (int) $filters[$field];
+            $clauses[] = $prefix . "`{$field}` = " . (int) $filters[$field];
          }
       }
       foreach (['entities_id', 'entities_id_from'] as $field) {
          if (plugin_atribuicaointeligente_distribution_has_filter($filters, $field)) {
-            $clauses[] = "`{$field}` = " . (int) $filters[$field];
+            $clauses[] = $prefix . "`{$field}` = " . (int) $filters[$field];
          }
       }
 
       if ($filters['action_type'] !== '') {
-         $clauses[] = "`action_type` = '" . addslashes($filters['action_type']) . "'";
+         $clauses[] = $prefix . "`action_type` = '" . addslashes($filters['action_type']) . "'";
       }
       if ($filters['source'] !== '') {
-         $clauses[] = "`source` = '" . addslashes($filters['source']) . "'";
+         $clauses[] = $prefix . "`source` = '" . addslashes($filters['source']) . "'";
+      }
+
+      return implode(' AND ', $clauses);
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_distribution_category_log_where')) {
+   function plugin_atribuicaointeligente_distribution_category_log_where(array $filters): string {
+      $clauses = [
+         "`catlog`.`itemtype` = 'Ticket'",
+         "`catlog`.`id_search_option` = 7",
+      ];
+
+      if ($filters['date_start'] !== '') {
+         $clauses[] = "`catlog`.`date_mod` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+      }
+      if ($filters['date_end'] !== '') {
+         $clauses[] = "`catlog`.`date_mod` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+      }
+
+      return implode(' AND ', $clauses);
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_distribution_technician_log_where')) {
+   function plugin_atribuicaointeligente_distribution_technician_log_where(array $filters): string {
+      $clauses = [
+         "`techlog`.`itemtype` = 'Ticket'",
+         "`techlog`.`itemtype_link` = 'User'",
+         "`techlog`.`id_search_option` = 5",
+      ];
+
+      if ($filters['date_start'] !== '') {
+         $clauses[] = "`techlog`.`date_mod` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+      }
+      if ($filters['date_end'] !== '') {
+         $clauses[] = "`techlog`.`date_mod` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
       }
 
       return implode(' AND ', $clauses);
@@ -184,7 +250,23 @@ $topDistributorRows = [];
 $technicianRows = [];
 $topTechnicianRows = [];
 $dailyRows = [];
-$sourceRows = [];
+$actuationRows = [
+   'plugin_only'  => [
+      'label'        => __('Automação integral', 'atribuicaointeligente'),
+      'tickets_count' => 0,
+      'total_events'  => 0,
+   ],
+   'plugin_human' => [
+      'label'        => __('Atuação assistida', 'atribuicaointeligente'),
+      'tickets_count' => 0,
+      'total_events'  => 0,
+   ],
+   'human_only'   => [
+      'label'        => __('Atuação manual', 'atribuicaointeligente'),
+      'tickets_count' => 0,
+      'total_events'  => 0,
+   ],
+];
 $transferRows = [];
 $totalRows = 0;
 $distinctTickets = 0;
@@ -211,8 +293,8 @@ if ($DB->tableExists($table)) {
        FROM `{$table}`
        WHERE {$whereSql}
        GROUP BY `users_id_actor`
-       ORDER BY total_events DESC, `users_id_actor` ASC
-       LIMIT 50"
+       ORDER BY tickets_count DESC, total_events DESC, `users_id_actor` ASC
+       LIMIT 5"
    );
    if ($summaryResult) {
       while ($row = $summaryResult->fetch_assoc()) {
@@ -241,7 +323,7 @@ if ($DB->tableExists($table)) {
          AND `users_id_to` IS NOT NULL
        GROUP BY `users_id_to`
        ORDER BY total_events DESC, `users_id_to` ASC
-       LIMIT 20"
+       LIMIT 10"
    );
    $topTechnicianRows = array_slice($technicianRows, 0, 5);
 
@@ -256,15 +338,70 @@ if ($DB->tableExists($table)) {
        LIMIT 120"
    );
 
-   $sourceRows = plugin_atribuicaointeligente_distribution_fetch_rows(
-      "SELECT `source`,
-              COUNT(*) AS total_events,
-              COUNT(DISTINCT `tickets_id`) AS tickets_count
-       FROM `{$table}`
-       WHERE {$whereSql}
-       GROUP BY `source`
-       ORDER BY total_events DESC, `source` ASC"
-   );
+   if ($DB->tableExists('glpi_logs')) {
+      $whereSqlAliased = plugin_atribuicaointeligente_distribution_where($filters, 'dl');
+      $categoryLogWhereSql = plugin_atribuicaointeligente_distribution_category_log_where($filters);
+      $technicianLogWhereSql = plugin_atribuicaointeligente_distribution_technician_log_where($filters);
+      $actuationRawRows = plugin_atribuicaointeligente_distribution_fetch_rows(
+         "SELECT ticket_classification.`classification`,
+                 COUNT(*) AS tickets_count,
+                 SUM(ticket_classification.`total_events`) AS total_events
+          FROM (
+             SELECT ticket_summary.`tickets_id`,
+                    ticket_summary.`total_events`,
+                    CASE
+                       WHEN (ticket_summary.`manual_technician_events` > 0
+                              OR ticket_summary.`technician_changes` > 0)
+                            AND ticket_summary.`category_changes` > 0
+                          THEN 'human_only'
+                       WHEN ticket_summary.`plugin_events` > 0
+                            AND ticket_summary.`manual_events` = 0
+                          THEN 'plugin_only'
+                       WHEN ticket_summary.`plugin_events` > 0
+                            AND ticket_summary.`manual_events` > 0
+                          THEN 'plugin_human'
+                       ELSE 'human_only'
+                    END AS classification
+             FROM (
+                SELECT dl.`tickets_id`,
+                       COUNT(*) AS total_events,
+                       SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_PLUGIN . "' THEN 1 ELSE 0 END) AS plugin_events,
+                       SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "' THEN 1 ELSE 0 END) AS manual_events,
+                       SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
+                                  AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+                                THEN 1 ELSE 0 END) AS manual_technician_events,
+                       COUNT(DISTINCT catlog.`id`) AS category_changes,
+                       COUNT(DISTINCT techlog.`id`) AS technician_changes
+                FROM `{$table}` dl
+                LEFT JOIN `glpi_logs` catlog
+                  ON catlog.`items_id` = dl.`tickets_id`
+                 AND {$categoryLogWhereSql}
+                LEFT JOIN `glpi_logs` techlog
+                  ON techlog.`items_id` = dl.`tickets_id`
+                 AND {$technicianLogWhereSql}
+                WHERE {$whereSqlAliased}
+                GROUP BY dl.`tickets_id`
+             ) ticket_summary
+          ) ticket_classification
+          GROUP BY ticket_classification.`classification`"
+      );
+
+      foreach ($actuationRawRows as $row) {
+         $classification = (string) ($row['classification'] ?? '');
+         if (isset($actuationRows[$classification])) {
+            $actuationRows[$classification]['tickets_count'] = (int) ($row['tickets_count'] ?? 0);
+            $actuationRows[$classification]['total_events'] = (int) ($row['total_events'] ?? 0);
+         }
+      }
+      uasort($actuationRows, static function (array $left, array $right): int {
+         $ticketDiff = (int) ($right['tickets_count'] ?? 0) <=> (int) ($left['tickets_count'] ?? 0);
+         if ($ticketDiff !== 0) {
+            return $ticketDiff;
+         }
+
+         return (int) ($right['total_events'] ?? 0) <=> (int) ($left['total_events'] ?? 0);
+      });
+   }
 
    $transferRows = plugin_atribuicaointeligente_distribution_fetch_rows(
       "SELECT `entities_id_from`,
@@ -434,11 +571,11 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
             <thead>
                <tr>
                   <th><?php echo __('Distribuidor', 'atribuicaointeligente'); ?></th>
+                  <th><?php echo __('Chamados', 'atribuicaointeligente'); ?></th>
+                  <th><?php echo __('Eventos', 'atribuicaointeligente'); ?></th>
                   <th><?php echo __('Tecnicos', 'atribuicaointeligente'); ?></th>
                   <th><?php echo __('Grupos', 'atribuicaointeligente'); ?></th>
                   <th><?php echo __('Transferencias', 'atribuicaointeligente'); ?></th>
-                  <th><?php echo __('Eventos', 'atribuicaointeligente'); ?></th>
-                  <th><?php echo __('Chamados', 'atribuicaointeligente'); ?></th>
                </tr>
             </thead>
             <tbody>
@@ -450,11 +587,11 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
                <?php foreach ($summaryRows as $row): ?>
                   <tr>
                      <td><?php echo (int) $row['users_id_actor'] > 0 ? plugin_atribuicaointeligente_distribution_escape(getUserName((int) $row['users_id_actor'])) : __('Sistema', 'atribuicaointeligente'); ?></td>
+                     <td><?php echo (int) $row['tickets_count']; ?></td>
+                     <td><?php echo (int) $row['total_events']; ?></td>
                      <td><?php echo (int) $row['technician_events']; ?></td>
                      <td><?php echo (int) $row['group_events']; ?></td>
                      <td><?php echo (int) $row['entity_events']; ?></td>
-                     <td><?php echo (int) $row['total_events']; ?></td>
-                     <td><?php echo (int) $row['tickets_count']; ?></td>
                   </tr>
                <?php endforeach; ?>
             </tbody>
@@ -573,30 +710,30 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
       <div class="col-12 col-xl-4">
          <div class="card h-100">
             <div class="card-header">
-               <h4 class="card-title mb-0"><?php echo __('Manual x Plugin', 'atribuicaointeligente'); ?></h4>
+               <h4 class="card-title mb-0"><?php echo __('Atuação por chamado', 'atribuicaointeligente'); ?></h4>
             </div>
             <div class="table-responsive">
                <table class="table table-hover mb-0">
                   <thead>
                      <tr>
-                        <th><?php echo __('Origem', 'atribuicaointeligente'); ?></th>
+                        <th><?php echo __('Classificação', 'atribuicaointeligente'); ?></th>
                         <th><?php echo __('Volume', 'atribuicaointeligente'); ?></th>
+                        <th class="text-end"><?php echo __('Chamados', 'atribuicaointeligente'); ?></th>
                         <th class="text-end"><?php echo __('Eventos', 'atribuicaointeligente'); ?></th>
                      </tr>
                   </thead>
                   <tbody>
-                     <?php if (empty($sourceRows)): ?>
+                     <?php $actuationMax = plugin_atribuicaointeligente_distribution_max($actuationRows, 'tickets_count'); ?>
+                     <?php foreach ($actuationRows as $row): ?>
+                        <?php
+                        $tickets = (int) ($row['tickets_count'] ?? 0);
+                        $events = (int) ($row['total_events'] ?? 0);
+                        ?>
                         <tr>
-                           <td colspan="3" class="text-muted text-center"><?php echo __('Nenhum registro encontrado.', 'atribuicaointeligente'); ?></td>
-                        </tr>
-                     <?php endif; ?>
-                     <?php $sourceMax = plugin_atribuicaointeligente_distribution_max($sourceRows, 'total_events'); ?>
-                     <?php foreach ($sourceRows as $row): ?>
-                        <?php $total = (int) ($row['total_events'] ?? 0); ?>
-                        <tr>
-                           <td><?php echo plugin_atribuicaointeligente_distribution_escape(PluginAtribuicaointeligenteDistributionLog::getSourceLabel((string) ($row['source'] ?? ''))); ?></td>
-                           <td><?php echo plugin_atribuicaointeligente_distribution_bar($total, $sourceMax); ?></td>
-                           <td class="text-end"><?php echo $total; ?></td>
+                           <td><?php echo plugin_atribuicaointeligente_distribution_escape($row['label'] ?? ''); ?></td>
+                           <td><?php echo plugin_atribuicaointeligente_distribution_bar($tickets, $actuationMax); ?></td>
+                           <td class="text-end"><?php echo $tickets; ?></td>
+                           <td class="text-end"><?php echo $events; ?></td>
                         </tr>
                      <?php endforeach; ?>
                   </tbody>
@@ -663,8 +800,8 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
                <?php endif; ?>
                <?php foreach ($transferRows as $row): ?>
                   <tr>
-                     <td><?php echo plugin_atribuicaointeligente_distribution_escape(Dropdown::getDropdownName('glpi_entities', (int) ($row['entities_id_from'] ?? 0))); ?></td>
-                     <td><?php echo plugin_atribuicaointeligente_distribution_escape(Dropdown::getDropdownName('glpi_entities', (int) ($row['entities_id_to'] ?? 0))); ?></td>
+                     <td><?php echo plugin_atribuicaointeligente_distribution_escape(plugin_atribuicaointeligente_distribution_entity_label($row['entities_id_from'] ?? 0)); ?></td>
+                     <td><?php echo plugin_atribuicaointeligente_distribution_escape(plugin_atribuicaointeligente_distribution_entity_label($row['entities_id_to'] ?? 0)); ?></td>
                      <td class="text-end"><?php echo (int) ($row['total_events'] ?? 0); ?></td>
                      <td class="text-end"><?php echo (int) ($row['tickets_count'] ?? 0); ?></td>
                   </tr>
