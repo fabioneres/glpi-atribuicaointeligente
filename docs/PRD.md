@@ -6,8 +6,8 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.1.9 - relatorio e rastreabilidade de distribuicoes |
-| Data | 1 de agosto de 2026 |
+| Versao | 1.2.0 - governanca de distribuicoes e indisponibilidades |
+| Data | 20 de agosto de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |
 | Objetivo desta versao | Consolidar o entendimento de produto da versao atual e orientar evolucoes futuras sem autorizar mudancas automaticas de codigo. |
@@ -138,7 +138,7 @@ Indisponibilidades e escalas sao dados administrativos do plugin. Elas devem ser
 
 | Recurso | Papel no fluxo | Situacao atual |
 | --- | --- | --- |
-| Indisponibilidade | Bloqueia tecnico por ferias, ausencia temporaria, data especifica ou recorrencia semanal. | Implementado. |
+| Indisponibilidade | Bloqueia tecnico por ferias, ausencia temporaria, data especifica ou recorrencia semanal. | Implementado com abas por tipo e visao de ferias futuras/simultaneas. |
 | Escala de atendimento | Define dias, horarios e validade operacional por tecnico e entidade. | Implementado. |
 | Calendario da entidade | Restringe distribuicao automatica ao horario de atendimento da entidade. | Implementado como opcao. |
 | Log de decisao | Registra tecnico escolhido, tecnicos ignorados e motivo. | Implementado com paginacao. |

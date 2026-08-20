@@ -68,6 +68,19 @@ if (isset($_GET['forcetab']) && in_array($_GET['forcetab'], $validTabs, true)) {
    $forcetab = $_SESSION['glpi_tabs'][$tabKey] ?? 'PluginAtribuicaointeligenteConfig$1';
 }
 
+if ((int) substr((string) $forcetab, -1) === 3) {
+   $allowedAvailabilityTabs = ['vacation', 'temporary', 'other'];
+   $availabilityTab = (string) ($_GET['availability_tab'] ?? 'vacation');
+   if (!in_array($availabilityTab, $allowedAvailabilityTabs, true)) {
+      $availabilityTab = 'vacation';
+   }
+
+   $_SESSION['plugin_atribuicaointeligente_unavailabilities'] = [
+      'availability_tab' => $availabilityTab,
+      'users_id'         => max(0, (int) ($_GET['users_id'] ?? 0)),
+   ];
+}
+
 $item->display([
    'id'       => $id,
    'target'   => PluginAtribuicaointeligenteConfig::getFormURL(false),

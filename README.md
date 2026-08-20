@@ -12,7 +12,7 @@ Plugin GLPI para atribuição automática de chamados a técnicos por categoria/
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
-- Versão atual: **1.1.9**.
+- Versão atual: **1.2.0**.
 
 ## Referências
 
@@ -63,6 +63,10 @@ Consulte tambem:
   - ausência em data específica;
   - indisponibilidade recorrente por dia da semana;
   - ausência temporária com data inicial e final.
+- Visualização de indisponibilidades separada por abas de férias, ausência temporária e outras ausências, com consulta de próximos períodos de férias e férias simultâneas.
+- Ao cadastrar indisponibilidade sem informar horário, o período é tratado como dia inteiro: início em `00:00:00` e fim em `23:59:59`.
+- Férias exibem períodos no formato `DD-MM-AAAA`, sem horário, com próximas férias limitadas ao mês atual e ao próximo; no detalhe do técnico, a coluna de ações permite editar cada período quando o usuário tem permissão.
+- Cada técnico pode ter no máximo 2 anos/cadastros de férias, com até 3 períodos por ano, totalizando até 6 períodos.
 - Cadastro de escala de atendimento por técnico:
   - múltiplos dias da semana no mesmo cadastro;
   - horário inicial e final;

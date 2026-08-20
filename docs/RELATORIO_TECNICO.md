@@ -10,8 +10,8 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.1.9`
-- Ultimo commit publicado conhecido: `2407c65 Adiciona habilitacao por entidade e pagina logs`
+- Versao atual: `1.2.0`
+- Ultima release documentada: `v1.2.0`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
 - VM de homologacao: `192.168.159.129`
@@ -362,6 +362,27 @@ Tipos implementados:
 - ausencia temporaria;
 - ausencia em data especifica;
 - recorrencia semanal.
+
+A listagem administrativa foi organizada em abas por tipo operacional:
+
+- `Ferias`: agrupa tecnicos com ferias cadastradas, permite abrir os periodos
+  do tecnico selecionado e mostra proximas ferias do mes atual/proximo mes e
+  sobreposicoes futuras ou ativas;
+- `Ausencia temporaria`: lista apenas ausencias temporarias por periodo;
+- `Outras ausencias`: concentra ausencia em data especifica e recorrencia
+  semanal.
+
+O formulario separa data e hora. Quando o administrador informa somente a data,
+o processamento server-side grava o inicio como `00:00:00` e o fim como
+`23:59:59`, mantendo o bloqueio pelo dia inteiro.
+
+Para ferias, a listagem exibe datas no formato `DD-MM-AAAA`, omite horarios e
+limita o cadastro a 2 anos/cadastros por tecnico, com ate 3 periodos por ano
+e ate 6 periodos no total. A visao geral da aba de ferias nao exibe coluna de
+acoes; o nome do tecnico continua sendo o ponto de navegacao para detalhar seus
+periodos. Dentro do detalhe do tecnico, a coluna de acoes segue o mesmo padrao
+visual da aba de ausencia temporaria para editar cada periodo quando o usuario
+tem direito de alteracao e acesso a entidade do registro.
 
 ### Escala de atendimento
 

@@ -32,6 +32,20 @@ $item = new PluginAtribuicaointeligenteTechnicianUnavailability();
 $canCreate = PluginAtribuicaointeligenteConfig::canCreateUnavailability();
 $canUpdate = PluginAtribuicaointeligenteConfig::canUpdateUnavailability();
 $canDelete = PluginAtribuicaointeligenteConfig::canDeleteUnavailability();
+$maxVacationPeriodsPerYear = 3;
+$maxVacationYears = 2;
+$allowedReturnTabs = ['vacation', 'temporary', 'other'];
+$typeReturnMap = [
+   'vacation'  => 'vacation',
+   'temporary' => 'temporary',
+];
+$requestedType = (string) ($_REQUEST['type'] ?? '');
+$returnTab = (string) ($_REQUEST['return_tab'] ?? ($typeReturnMap[$requestedType] ?? 'temporary'));
+if (!in_array($returnTab, $allowedReturnTabs, true)) {
+   $returnTab = 'temporary';
+}
+$redirectTabUrl = PluginAtribuicaointeligenteConfig::getFormURL(true)
+   . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($returnTab);
 
 Toolbox::logInFile('plugin_atribuicaointeligente', 'FORM indisponibilidade acessado: ' . json_encode([
    'method'              => $_SERVER['REQUEST_METHOD'] ?? '',
@@ -79,12 +93,56 @@ if (!function_exists('plugin_atribuicaointeligente_normalize_datetime')) {
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_normalize_date_time_parts')) {
+   function plugin_atribuicaointeligente_normalize_date_time_parts($date, $time, bool $endOfDay = false) {
+      $date = trim((string) $date);
+      $time = trim((string) $time);
+      if ($date === '') {
+         return null;
+      }
+
+      if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+         return plugin_atribuicaointeligente_normalize_datetime($date, $endOfDay);
+      }
+
+      if ($time === '') {
+         $time = $endOfDay ? '23:59:59' : '00:00:00';
+      } elseif (preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $time)) {
+         $time .= ':00';
+      } elseif (!preg_match('/^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/', $time)) {
+         return null;
+      }
+
+      return $date . ' ' . $time;
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_datetime_value')) {
    function plugin_atribuicaointeligente_datetime_value($value) {
       if (empty($value)) {
          return '';
       }
       return str_replace(' ', 'T', substr((string) $value, 0, 16));
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_date_value')) {
+   function plugin_atribuicaointeligente_date_value($value): string {
+      if (empty($value)) {
+         return '';
+      }
+
+      return substr((string) $value, 0, 10);
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_time_value')) {
+   function plugin_atribuicaointeligente_time_value($value): string {
+      if (empty($value)) {
+         return '';
+      }
+
+      return substr((string) $value, 11, 5);
    }
 }
 
@@ -96,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          false,
          ERROR
       );
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect($redirectTabUrl);
    }
 
    $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
@@ -111,11 +169,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if (!$current) {
          Session::addMessageAfterRedirect(__('Indisponibilidade nao encontrada.', 'atribuicaointeligente'), false, ERROR);
-         Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+         Html::redirect($redirectTabUrl);
       }
 
       if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($current['entities_id'] ?? 0))) {
          Html::displayRightError();
+      }
+
+      if (empty($_REQUEST['return_tab'])) {
+         $returnTab = $typeReturnMap[(string) ($current['type'] ?? '')] ?? 'other';
+         $redirectTabUrl = PluginAtribuicaointeligenteConfig::getFormURL(true)
+            . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($returnTab);
       }
    }
 
@@ -123,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       PluginAtribuicaointeligenteConfig::assertCanDeleteUnavailability();
       $DB->delete($table, ['id' => $id]);
       Session::addMessageAfterRedirect(__('Indisponibilidade excluída.', 'atribuicaointeligente'), false, INFO);
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect($redirectTabUrl);
    }
 
    if (isset($_POST['toggle']) && $id > 0) {
@@ -134,13 +198,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          'date_mod'  => date('Y-m-d H:i:s'),
       ], ['id' => $id]);
       Session::addMessageAfterRedirect(__('Status atualizado.', 'atribuicaointeligente'), false, INFO);
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect($redirectTabUrl);
    }
 
    $type = (string) ($_POST['type'] ?? 'temporary');
    $type = array_key_exists($type, PluginAtribuicaointeligenteTechnicianUnavailability::getTypes()) ? $type : 'temporary';
-   $dateStart = plugin_atribuicaointeligente_normalize_datetime($_POST['date_start'] ?? null);
-   $dateEnd = plugin_atribuicaointeligente_normalize_datetime($_POST['date_end'] ?? null, true);
+   $dateStart = array_key_exists('date_start_date', $_POST)
+      ? plugin_atribuicaointeligente_normalize_date_time_parts($_POST['date_start_date'] ?? null, $_POST['date_start_time'] ?? null)
+      : plugin_atribuicaointeligente_normalize_datetime($_POST['date_start'] ?? null);
+   $dateEnd = array_key_exists('date_end_date', $_POST)
+      ? plugin_atribuicaointeligente_normalize_date_time_parts($_POST['date_end_date'] ?? null, $_POST['date_end_time'] ?? null, true)
+      : plugin_atribuicaointeligente_normalize_datetime($_POST['date_end'] ?? null, true);
 
    if ($type === 'specific_date' && $dateStart !== null && $dateEnd === null) {
       $dateEnd = plugin_atribuicaointeligente_normalize_datetime(substr($dateStart, 0, 10), true);
@@ -200,12 +268,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $errors[] = __('Voce nao tem acesso a entidade selecionada.', 'atribuicaointeligente');
    }
 
+   if ($type === 'vacation' && $input['users_id'] > 0 && $dateStart !== null) {
+      $vacationYear = substr((string) $dateStart, 0, 4);
+      $vacationYears = [];
+      $iterator = $DB->request([
+         'FROM'  => $table,
+         'WHERE' => [
+            'users_id' => $input['users_id'],
+            'type'     => 'vacation',
+         ],
+      ]);
+      foreach ($iterator as $row) {
+         if ((int) ($row['id'] ?? 0) !== $id) {
+            $rowYear = !empty($row['date_start']) ? substr((string) $row['date_start'], 0, 4) : '';
+            if ($rowYear !== '') {
+               $vacationYears[$rowYear] = ($vacationYears[$rowYear] ?? 0) + 1;
+            }
+         }
+      }
+      $vacationYears[$vacationYear] = ($vacationYears[$vacationYear] ?? 0) + 1;
+
+      if (($vacationYears[$vacationYear] ?? 0) > $maxVacationPeriodsPerYear) {
+         $errors[] = sprintf(
+            __('Cada técnico pode ter no máximo %d períodos de férias por ano.', 'atribuicaointeligente'),
+            $maxVacationPeriodsPerYear
+         );
+      }
+      if (count($vacationYears) > $maxVacationYears) {
+         $errors[] = sprintf(
+            __('Cada técnico pode ter férias cadastradas em no máximo %d anos.', 'atribuicaointeligente'),
+            $maxVacationYears
+         );
+      }
+   }
+
    if (!empty($errors)) {
       foreach ($errors as $error) {
          Session::addMessageAfterRedirect($error, false, ERROR);
       }
       $url = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php';
-      Html::redirect($id > 0 ? $url . '?id=' . $id : $url);
+      $params = ['return_tab' => $returnTab, 'type' => $type];
+      if ($id > 0) {
+         $params['id'] = $id;
+      }
+      Html::redirect($url . '?' . http_build_query($params));
    }
 
    try {
@@ -223,7 +329,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          Toolbox::logInFile('plugin_atribuicaointeligente', 'Indisponibilidade inserida com sucesso.' . PHP_EOL);
          Session::addMessageAfterRedirect(__('Indisponibilidade adicionada.', 'atribuicaointeligente'), false, INFO);
       }
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      $targetReturnTab = $typeReturnMap[$input['type']] ?? 'other';
+      Html::redirect(
+         PluginAtribuicaointeligenteConfig::getFormURL(true)
+         . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($targetReturnTab)
+      );
    } catch (Throwable $e) {
       Toolbox::logInFile('plugin_atribuicaointeligente', 'Falha ao gravar indisponibilidade: ' . $e->getMessage() . PHP_EOL);
       Session::addMessageAfterRedirect(
@@ -232,14 +342,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          ERROR
       );
       $url = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php';
-      Html::redirect($id > 0 ? $url . '?id=' . $id : $url);
+      $params = ['return_tab' => $returnTab, 'type' => $type];
+      if ($id > 0) {
+         $params['id'] = $id;
+      }
+      Html::redirect($url . '?' . http_build_query($params));
    }
 }
 
 $fields = [
    'users_id'    => 0,
    'entities_id' => 0,
-   'type'        => 'temporary',
+   'type'        => array_key_exists((string) ($_GET['type'] ?? ''), PluginAtribuicaointeligenteTechnicianUnavailability::getTypes())
+      ? (string) $_GET['type']
+      : 'temporary',
    'date_start'  => '',
    'date_end'    => '',
    'weekday'     => '',
@@ -250,7 +366,7 @@ $fields = [
 if ($id > 0) {
    if (!$item->getFromDB($id)) {
       Session::addMessageAfterRedirect(__('Indisponibilidade nao encontrada.', 'atribuicaointeligente'), false, ERROR);
-      Html::redirect(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3');
+      Html::redirect($redirectTabUrl);
    }
 
    if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($item->fields['entities_id'] ?? 0))) {
@@ -258,6 +374,12 @@ if ($id > 0) {
    }
 
    $fields = array_merge($fields, $item->fields);
+
+   if (empty($_REQUEST['return_tab'])) {
+      $returnTab = $typeReturnMap[(string) ($fields['type'] ?? '')] ?? 'other';
+      $redirectTabUrl = PluginAtribuicaointeligenteConfig::getFormURL(true)
+         . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($returnTab);
+   }
 }
 
 Html::header(
@@ -279,6 +401,7 @@ Html::header(
       <div class="card-body">
          <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken(true)]); ?>
          <?php echo Html::hidden('id', ['value' => $id]); ?>
+         <?php echo Html::hidden('return_tab', ['value' => $returnTab]); ?>
 
          <div class="row g-3">
             <div class="col-12 col-lg-6">
@@ -323,14 +446,25 @@ Html::header(
                ]); ?>
             </div>
 
-            <div class="col-12 col-lg-6">
-               <label class="form-label" for="date_start"><?php echo __('Data inicial', 'atribuicaointeligente'); ?></label>
-               <input type="datetime-local" class="form-control" id="date_start" name="date_start" value="<?php echo htmlspecialchars(plugin_atribuicaointeligente_datetime_value($fields['date_start']), ENT_QUOTES, 'UTF-8'); ?>">
+            <div class="col-12 col-lg-3">
+               <label class="form-label" for="date_start_date"><?php echo __('Data inicial', 'atribuicaointeligente'); ?></label>
+               <input type="date" class="form-control" id="date_start_date" name="date_start_date" value="<?php echo htmlspecialchars(plugin_atribuicaointeligente_date_value($fields['date_start']), ENT_QUOTES, 'UTF-8'); ?>">
             </div>
 
-            <div class="col-12 col-lg-6">
-               <label class="form-label" for="date_end"><?php echo __('Data final', 'atribuicaointeligente'); ?></label>
-               <input type="datetime-local" class="form-control" id="date_end" name="date_end" value="<?php echo htmlspecialchars(plugin_atribuicaointeligente_datetime_value($fields['date_end']), ENT_QUOTES, 'UTF-8'); ?>">
+            <div class="col-12 col-lg-3">
+               <label class="form-label" for="date_start_time"><?php echo __('Hora inicial', 'atribuicaointeligente'); ?></label>
+               <input type="time" class="form-control" id="date_start_time" name="date_start_time" value="<?php echo htmlspecialchars(plugin_atribuicaointeligente_time_value($fields['date_start']), ENT_QUOTES, 'UTF-8'); ?>">
+            </div>
+
+            <div class="col-12 col-lg-3">
+               <label class="form-label" for="date_end_date"><?php echo __('Data final', 'atribuicaointeligente'); ?></label>
+               <input type="date" class="form-control" id="date_end_date" name="date_end_date" value="<?php echo htmlspecialchars(plugin_atribuicaointeligente_date_value($fields['date_end']), ENT_QUOTES, 'UTF-8'); ?>">
+            </div>
+
+            <div class="col-12 col-lg-3">
+               <label class="form-label" for="date_end_time"><?php echo __('Hora final', 'atribuicaointeligente'); ?></label>
+               <input type="time" class="form-control" id="date_end_time" name="date_end_time" value="<?php echo htmlspecialchars(plugin_atribuicaointeligente_time_value($fields['date_end']), ENT_QUOTES, 'UTF-8'); ?>">
+               <div class="form-text"><?php echo __('Sem horário informado, o período vale pelo dia inteiro.', 'atribuicaointeligente'); ?></div>
             </div>
 
             <div class="col-12">
@@ -352,7 +486,7 @@ Html::header(
                <i class="ti ti-device-floppy me-1"></i>
                <?php echo __('Salvar', 'atribuicaointeligente'); ?>
             </button>
-            <a class="btn btn-outline-secondary" href="<?php echo htmlspecialchars(PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=PluginAtribuicaointeligenteConfig$3', ENT_QUOTES, 'UTF-8'); ?>">
+            <a class="btn btn-outline-secondary" href="<?php echo htmlspecialchars($redirectTabUrl, ENT_QUOTES, 'UTF-8'); ?>">
                <?php echo __('Voltar', 'atribuicaointeligente'); ?>
             </a>
          </div>

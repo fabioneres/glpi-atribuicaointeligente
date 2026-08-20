@@ -57,6 +57,10 @@ class PluginAtribuicaointeligenteTechnicianUnavailability extends CommonDBTM {
    }
 
    public static function getWeekdayLabel($weekday): string {
+      if ($weekday === null || $weekday === '') {
+         return '';
+      }
+
       $weekdays = self::getWeekdays();
       return $weekdays[(int) $weekday] ?? '';
    }

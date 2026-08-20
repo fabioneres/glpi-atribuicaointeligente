@@ -11,7 +11,7 @@ NexTool, transformado em plugin independente para GLPI 10. Ele preserva a
 logica original de atribuicao automatica e acrescenta regras de
 disponibilidade, escala e controle por entidade.
 
-Estado atual: plugin funcional em homologacao, versao **1.1.9**, publicado em
+Estado atual: plugin funcional em homologacao, versao **1.2.0**, publicado em
 repositorio privado como `glpi-atribuicaointeligente`.
 
 ## Objetivo
@@ -189,6 +189,25 @@ inesperado apos instalacao.
 
 Permite cadastrar, editar, listar, excluir ou desativar indisponibilidades de
 tecnicos.
+
+A tela administrativa separa a consulta por abas:
+
+- ferias;
+- ausencia temporaria;
+- outras ausencias.
+
+Na aba de ferias, os tecnicos sao agrupados por nome, com acesso aos periodos
+cadastrados, proximas ferias do mes atual/proximo mes e sobreposicoes de
+ferias ativas ou futuras.
+
+Quando o cadastro recebe apenas a data, sem horario, o plugin considera o
+periodo como dia inteiro: inicio `00:00:00` e fim `23:59:59`.
+
+Na visualizacao de ferias, os periodos sao exibidos sem horario e no formato
+`DD-MM-AAAA`. Cada tecnico pode ter no maximo 2 anos/cadastros de ferias, com
+ate 3 periodos por ano, totalizando ate 6 periodos. No detalhe do tecnico, a
+coluna de acoes permite acessar o formulario de edicao de cada periodo quando o
+usuario possui permissao e acesso a entidade do registro.
 
 Tipos suportados:
 
