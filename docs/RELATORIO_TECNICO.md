@@ -10,8 +10,8 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.2.5`
-- Ultima release documentada: `v1.2.5`
+- Versao atual: `1.2.6`
+- Ultima release documentada: `v1.2.6`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
 - VM de homologacao: `192.168.159.129`
@@ -314,6 +314,9 @@ sobrepoe a automacao quando ocorre depois da decisao do plugin ou quando nao
 existe decisao automatica para o chamado.
 Os quadros de distribuicao por tecnico e top 5 tecnicos destino tambem consideram
 `selected_users_id` dos logs de decisao para nao ocultar atribuicoes automaticas.
+Essa contagem usa filtro proprio de tecnico destino e nao reaproveita a regra
+estrita de classificacao, para preservar tecnicos recebidos mesmo quando a
+classificacao estiver limitada aos motivos gerenciais de automacao.
 Os nomes de entidade sao decodificados antes da exibicao para evitar sequencias
 HTML como `&#62;` no caminho hierarquico.
 

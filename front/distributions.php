@@ -210,7 +210,7 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_user_dropdown'))
       if ($field === 'users_id_to') {
          $decisionTable = PluginAtribuicaointeligenteConfig::getDecisionLogsTable();
          if ($DB->tableExists($decisionTable)) {
-            $decisionWhereSql = plugin_atribuicaointeligente_distribution_decision_log_where($optionFilters, 'decisionlog');
+            $decisionWhereSql = plugin_atribuicaointeligente_distribution_decision_technician_where($optionFilters, 'decisionlog');
             $decisionRows = plugin_atribuicaointeligente_distribution_fetch_rows(
                "SELECT DISTINCT decisionlog.`selected_users_id` AS users_id
                 FROM `{$decisionTable}` decisionlog
@@ -384,6 +384,65 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_whe
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_decision_technician_where')) {
+   function plugin_atribuicaointeligente_distribution_decision_technician_where(array $filters, string $alias = 'decisionlog'): string {
+      $alias = preg_replace('/[^a-zA-Z0-9_]/', '', $alias);
+      $prefix = '`' . $alias . '`.';
+      $clauses = [
+         $prefix . "`selected_users_id` IS NOT NULL",
+         $prefix . "`selected_users_id` > 0",
+         $prefix . "`tickets_id` IS NOT NULL",
+         $prefix . "`tickets_id` > 0",
+      ];
+
+      if (!Session::canViewAllEntities()) {
+         $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
+         $entities[] = 0;
+         $entities = array_values(array_unique(array_filter($entities, static function($entityId) {
+            return $entityId >= 0;
+         })));
+         if (empty($entities)) {
+            $entities = [0];
+         }
+         $clauses[] = $prefix . '`entities_id` IN (' . implode(',', $entities) . ')';
+      }
+      if ($filters['date_start'] !== '') {
+         $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+      }
+      if ($filters['date_end'] !== '') {
+         $clauses[] = $prefix . "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+      }
+      if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
+         $clauses[] = $prefix . "`entities_id` = " . (int) $filters['entities_id'];
+      }
+      if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id_from')) {
+         $clauses[] = '1 = 0';
+      }
+      if ((int) ($filters['itilcategories_id'] ?? 0) > 0) {
+         $clauses[] = $prefix . "`itilcategories_id` = " . (int) $filters['itilcategories_id'];
+      }
+      if ((int) ($filters['groups_id_to'] ?? 0) > 0) {
+         $clauses[] = $prefix . "`groups_id` = " . (int) $filters['groups_id_to'];
+      }
+      if ((int) ($filters['users_id_to'] ?? 0) > 0) {
+         $clauses[] = $prefix . "`selected_users_id` = " . (int) $filters['users_id_to'];
+      }
+      if ((int) ($filters['users_id_actor'] ?? 0) > 0) {
+         $clauses[] = '1 = 0';
+      }
+      if (($filters['action_type'] ?? '') !== ''
+         && $filters['action_type'] !== PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED
+      ) {
+         $clauses[] = '1 = 0';
+      }
+      if (($filters['source'] ?? '') === PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL) {
+         $clauses[] = '1 = 0';
+      }
+
+      return implode(' AND ', $clauses);
+   }
+}
+
 $embedded = !empty($_GET['embedded']);
 $table = PluginAtribuicaointeligenteDistributionLog::getTable();
 
@@ -487,6 +546,7 @@ if ($DB->tableExists($table)) {
     if ($DB->tableExists($decisionTable)) {
        $whereSqlAliased = plugin_atribuicaointeligente_distribution_where($filters, 'dl');
       $decisionLogWhereSql = plugin_atribuicaointeligente_distribution_decision_log_where($filters, 'decisionlog');
+      $decisionTechnicianWhereSql = plugin_atribuicaointeligente_distribution_decision_technician_where($filters, 'decisionlog');
 
       $technicianRows = plugin_atribuicaointeligente_distribution_fetch_rows(
          "SELECT technician_summary.`users_id_to`,
@@ -501,10 +561,10 @@ if ($DB->tableExists($table)) {
                AND dl.`users_id_to` IS NOT NULL
                AND dl.`users_id_to` > 0
              UNION ALL
-             SELECT decisionlog.`tickets_id`,
-                    decisionlog.`selected_users_id` AS users_id_to
-             FROM `{$decisionTable}` decisionlog
-             WHERE {$decisionLogWhereSql}
+              SELECT decisionlog.`tickets_id`,
+                     decisionlog.`selected_users_id` AS users_id_to
+              FROM `{$decisionTable}` decisionlog
+              WHERE {$decisionTechnicianWhereSql}
           ) technician_summary
           GROUP BY technician_summary.`users_id_to`
           ORDER BY total_events DESC, technician_summary.`users_id_to` ASC
