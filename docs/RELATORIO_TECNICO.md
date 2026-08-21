@@ -10,8 +10,8 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.2.2`
-- Ultima release documentada: `v1.2.2`
+- Versao atual: `1.2.3`
+- Ultima release documentada: `v1.2.3`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
 - VM de homologacao: `192.168.159.129`
@@ -298,17 +298,19 @@ em ordem decrescente de chamados.
 
 A classificacao "Atuacao por chamado" e calculada no nivel do chamado, nao no
 nivel do evento. Ela separa chamados em Automacao integral, Automacao parcial e
-Atuacao manual. Quando o plugin atuou e o historico do GLPI indica interferencia
-humana posterior no periodo filtrado, como alteracao de categoria, o chamado e
-classificado como Automacao parcial. A classificacao Atuacao manual e reservada
-para chamados sem atuacao do plugin ou para casos com alteracao manual do
-tecnico do chamado.
+Atuacao manual. Chamados com tecnico atribuido automaticamente pelo plugin sem
+interferencia manual de tecnico entram como Automacao integral. Quando o tecnico
+foi atribuido automaticamente apos atualizacao do chamado, a classificacao e
+Automacao parcial. A classificacao Atuacao manual e reservada para chamados sem
+atuacao do plugin ou para casos com alteracao manual do tecnico do chamado.
 Os nomes de entidade sao decodificados antes da exibicao para evitar sequencias
 HTML como `&#62;` no caminho hierarquico.
 
 Os filtros da tela de Distribuicoes sao persistidos na sessao do usuario para
 manter o ultimo criterio visivel e aplicado ao retornar para a aba. O botao
 Limpar remove explicitamente esse estado salvo e volta aos filtros padrao.
+Quando a entidade do chamado esta selecionada, os filtros de distribuidor e
+tecnico destino exibem apenas usuarios presentes nos logs daquela entidade.
 
 ## Funcionalidades implementadas
 

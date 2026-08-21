@@ -11,7 +11,7 @@ NexTool, transformado em plugin independente para GLPI 10. Ele preserva a
 logica original de atribuicao automatica e acrescenta regras de
 disponibilidade, escala e controle por entidade.
 
-Estado atual: plugin funcional em homologacao, versao **1.2.2**, publicado em
+Estado atual: plugin funcional em homologacao, versao **1.2.3**, publicado em
 repositorio privado como `glpi-atribuicaointeligente`.
 
 ## Objetivo

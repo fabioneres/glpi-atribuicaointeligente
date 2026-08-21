@@ -162,6 +162,66 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_entity_dropdown'
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_user_dropdown')) {
+   function plugin_atribuicaointeligente_distribution_user_dropdown(string $name, $value, string $field, array $filters): void {
+      global $DB;
+
+      $value = (int) $value;
+      $table = PluginAtribuicaointeligenteDistributionLog::getTable();
+      if (!plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')
+         || !$DB->tableExists($table)
+      ) {
+         User::dropdown([
+            'name'                => $name,
+            'value'               => $value,
+            'right'               => 'all',
+            'display_emptychoice' => true,
+            'width'               => '100%',
+         ]);
+         return;
+      }
+
+      $field = $field === 'users_id_to' ? 'users_id_to' : 'users_id_actor';
+      $optionFilters = $filters;
+      if ($field === 'users_id_actor') {
+         $optionFilters['users_id_actor'] = 0;
+      } else {
+         $optionFilters['users_id_to'] = 0;
+      }
+      $whereSql = plugin_atribuicaointeligente_distribution_where($optionFilters);
+      $rows = plugin_atribuicaointeligente_distribution_fetch_rows(
+         "SELECT DISTINCT `{$field}` AS users_id
+          FROM `{$table}`
+          WHERE {$whereSql}
+            AND `{$field}` IS NOT NULL
+            AND `{$field}` > 0
+          ORDER BY `{$field}` ASC
+          LIMIT 250"
+      );
+
+      $userIds = [];
+      foreach ($rows as $row) {
+         $userId = (int) ($row['users_id'] ?? 0);
+         if ($userId > 0) {
+            $userIds[] = $userId;
+         }
+      }
+      if ($value > 0 && !in_array($value, $userIds, true)) {
+         $userIds[] = $value;
+      }
+
+      echo '<select class="form-select" name="' . plugin_atribuicaointeligente_distribution_escape($name) . '">';
+      echo '<option value="0">' . plugin_atribuicaointeligente_distribution_escape(__('-----')) . '</option>';
+      foreach ($userIds as $userId) {
+         $selected = $value === $userId ? ' selected' : '';
+         echo '<option value="' . $userId . '"' . $selected . '>'
+            . plugin_atribuicaointeligente_distribution_escape(getUserName($userId))
+            . '</option>';
+      }
+      echo '</select>';
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_distribution_fetch_rows')) {
    function plugin_atribuicaointeligente_distribution_fetch_rows(string $sql): array {
       global $DB;
@@ -243,37 +303,23 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
    }
 }
 
-if (!function_exists('plugin_atribuicaointeligente_distribution_category_log_where')) {
-   function plugin_atribuicaointeligente_distribution_category_log_where(array $filters): string {
+if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_where')) {
+   function plugin_atribuicaointeligente_distribution_decision_log_where(array $filters): string {
       $clauses = [
-         "`catlog`.`itemtype` = 'Ticket'",
-         "`catlog`.`id_search_option` = 7",
+         "`decisionlog`.`selected_users_id` IS NOT NULL",
       ];
 
       if ($filters['date_start'] !== '') {
-         $clauses[] = "`catlog`.`date_mod` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+         $clauses[] = "`decisionlog`.`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
       }
       if ($filters['date_end'] !== '') {
-         $clauses[] = "`catlog`.`date_mod` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+         $clauses[] = "`decisionlog`.`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
       }
-
-      return implode(' AND ', $clauses);
-   }
-}
-
-if (!function_exists('plugin_atribuicaointeligente_distribution_technician_log_where')) {
-   function plugin_atribuicaointeligente_distribution_technician_log_where(array $filters): string {
-      $clauses = [
-         "`techlog`.`itemtype` = 'Ticket'",
-         "`techlog`.`itemtype_link` = 'User'",
-         "`techlog`.`id_search_option` = 5",
-      ];
-
-      if ($filters['date_start'] !== '') {
-         $clauses[] = "`techlog`.`date_mod` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+      if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
+         $clauses[] = "`decisionlog`.`entities_id` = " . (int) $filters['entities_id'];
       }
-      if ($filters['date_end'] !== '') {
-         $clauses[] = "`techlog`.`date_mod` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+      if ((int) ($filters['itilcategories_id'] ?? 0) > 0) {
+         $clauses[] = "`decisionlog`.`itilcategories_id` = " . (int) $filters['itilcategories_id'];
       }
 
       return implode(' AND ', $clauses);
@@ -393,10 +439,10 @@ if ($DB->tableExists($table)) {
        LIMIT 120"
    );
 
-   if ($DB->tableExists('glpi_logs')) {
+   $decisionTable = PluginAtribuicaointeligenteConfig::getDecisionLogsTable();
+   if ($DB->tableExists($decisionTable)) {
       $whereSqlAliased = plugin_atribuicaointeligente_distribution_where($filters, 'dl');
-      $categoryLogWhereSql = plugin_atribuicaointeligente_distribution_category_log_where($filters);
-      $technicianLogWhereSql = plugin_atribuicaointeligente_distribution_technician_log_where($filters);
+      $decisionLogWhereSql = plugin_atribuicaointeligente_distribution_decision_log_where($filters);
       $actuationRawRows = plugin_atribuicaointeligente_distribution_fetch_rows(
          "SELECT ticket_classification.`classification`,
                  COUNT(*) AS tickets_count,
@@ -409,8 +455,7 @@ if ($DB->tableExists($table)) {
                           THEN 'human_only'
                        WHEN ticket_summary.`plugin_events` > 0
                             AND (ticket_summary.`manual_events` > 0
-                                 OR ticket_summary.`category_changes` > 0
-                                 OR ticket_summary.`technician_changes` > 0)
+                                 OR ticket_summary.`plugin_update_events` > 0)
                           THEN 'plugin_human'
                        WHEN ticket_summary.`plugin_events` > 0
                           THEN 'plugin_only'
@@ -424,15 +469,12 @@ if ($DB->tableExists($table)) {
                        SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
                                   AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
                                 THEN 1 ELSE 0 END) AS manual_technician_events,
-                       COUNT(DISTINCT catlog.`id`) AS category_changes,
-                       COUNT(DISTINCT techlog.`id`) AS technician_changes
+                       COUNT(DISTINCT decisionlog.`id`) AS plugin_update_events
                 FROM `{$table}` dl
-                LEFT JOIN `glpi_logs` catlog
-                  ON catlog.`items_id` = dl.`tickets_id`
-                 AND {$categoryLogWhereSql}
-                LEFT JOIN `glpi_logs` techlog
-                  ON techlog.`items_id` = dl.`tickets_id`
-                 AND {$technicianLogWhereSql}
+                LEFT JOIN `{$decisionTable}` decisionlog
+                  ON decisionlog.`tickets_id` = dl.`tickets_id`
+                 AND decisionlog.`reason` LIKE '%apos atualizacao%'
+                 AND {$decisionLogWhereSql}
                 WHERE {$whereSqlAliased}
                 GROUP BY dl.`tickets_id`
              ) ticket_summary
@@ -507,25 +549,23 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
             <div class="col-12 col-md-3">
                <label class="form-label"><?php echo __('Distribuidor', 'atribuicaointeligente'); ?></label>
                <?php
-               User::dropdown([
-                  'name'                => 'users_id_actor',
-                  'value'               => (int) $filters['users_id_actor'],
-                  'right'               => 'all',
-                  'display_emptychoice' => true,
-                  'width'               => '100%',
-               ]);
+               plugin_atribuicaointeligente_distribution_user_dropdown(
+                  'users_id_actor',
+                  (int) $filters['users_id_actor'],
+                  'users_id_actor',
+                  $filters
+               );
                ?>
             </div>
             <div class="col-12 col-md-3">
                <label class="form-label"><?php echo __('Tecnico destino', 'atribuicaointeligente'); ?></label>
                <?php
-               User::dropdown([
-                  'name'                => 'users_id_to',
-                  'value'               => (int) $filters['users_id_to'],
-                  'right'               => 'all',
-                  'display_emptychoice' => true,
-                  'width'               => '100%',
-               ]);
+               plugin_atribuicaointeligente_distribution_user_dropdown(
+                  'users_id_to',
+                  (int) $filters['users_id_to'],
+                  'users_id_to',
+                  $filters
+               );
                ?>
             </div>
             <div class="col-12 col-md-3">
