@@ -206,6 +206,28 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_user_dropdown'))
             $userIds[] = $userId;
          }
       }
+
+      if ($field === 'users_id_to') {
+         $decisionTable = PluginAtribuicaointeligenteConfig::getDecisionLogsTable();
+         if ($DB->tableExists($decisionTable)) {
+            $decisionWhereSql = plugin_atribuicaointeligente_distribution_decision_log_where($optionFilters, 'decisionlog');
+            $decisionRows = plugin_atribuicaointeligente_distribution_fetch_rows(
+               "SELECT DISTINCT decisionlog.`selected_users_id` AS users_id
+                FROM `{$decisionTable}` decisionlog
+                WHERE {$decisionWhereSql}
+                ORDER BY decisionlog.`selected_users_id` ASC
+                LIMIT 250"
+            );
+            foreach ($decisionRows as $row) {
+               $userId = (int) ($row['users_id'] ?? 0);
+               if ($userId > 0) {
+                  $userIds[] = $userId;
+               }
+            }
+         }
+      }
+
+      $userIds = array_values(array_unique($userIds));
       if ($value > 0 && !in_array($value, $userIds, true)) {
          $userIds[] = $value;
       }
@@ -304,22 +326,57 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
 }
 
 if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_where')) {
-   function plugin_atribuicaointeligente_distribution_decision_log_where(array $filters): string {
+   function plugin_atribuicaointeligente_distribution_decision_log_where(array $filters, string $alias = 'decisionlog'): string {
+      $alias = preg_replace('/[^a-zA-Z0-9_]/', '', $alias);
+      $prefix = '`' . $alias . '`.';
       $clauses = [
-         "`decisionlog`.`selected_users_id` IS NOT NULL",
+         $prefix . "`selected_users_id` IS NOT NULL",
+         $prefix . "`tickets_id` IS NOT NULL",
+         $prefix . "`tickets_id` > 0",
       ];
 
+      if (!Session::canViewAllEntities()) {
+         $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
+         $entities[] = 0;
+         $entities = array_values(array_unique(array_filter($entities, static function($entityId) {
+            return $entityId >= 0;
+         })));
+         if (empty($entities)) {
+            $entities = [0];
+         }
+         $clauses[] = $prefix . '`entities_id` IN (' . implode(',', $entities) . ')';
+      }
       if ($filters['date_start'] !== '') {
-         $clauses[] = "`decisionlog`.`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+         $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
       }
       if ($filters['date_end'] !== '') {
-         $clauses[] = "`decisionlog`.`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+         $clauses[] = $prefix . "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
       }
       if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
-         $clauses[] = "`decisionlog`.`entities_id` = " . (int) $filters['entities_id'];
+         $clauses[] = $prefix . "`entities_id` = " . (int) $filters['entities_id'];
+      }
+      if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id_from')) {
+         $clauses[] = '1 = 0';
       }
       if ((int) ($filters['itilcategories_id'] ?? 0) > 0) {
-         $clauses[] = "`decisionlog`.`itilcategories_id` = " . (int) $filters['itilcategories_id'];
+         $clauses[] = $prefix . "`itilcategories_id` = " . (int) $filters['itilcategories_id'];
+      }
+      if ((int) ($filters['groups_id_to'] ?? 0) > 0) {
+         $clauses[] = $prefix . "`groups_id` = " . (int) $filters['groups_id_to'];
+      }
+      if ((int) ($filters['users_id_to'] ?? 0) > 0) {
+         $clauses[] = $prefix . "`selected_users_id` = " . (int) $filters['users_id_to'];
+      }
+      if ((int) ($filters['users_id_actor'] ?? 0) > 0) {
+         $clauses[] = '1 = 0';
+      }
+      if (($filters['action_type'] ?? '') !== ''
+         && $filters['action_type'] !== PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED
+      ) {
+         $clauses[] = '1 = 0';
+      }
+      if (($filters['source'] ?? '') === PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL) {
+         $clauses[] = '1 = 0';
       }
 
       return implode(' AND ', $clauses);
@@ -414,23 +471,9 @@ if ($DB->tableExists($table)) {
        LIMIT 5"
    );
 
-   $technicianRows = plugin_atribuicaointeligente_distribution_fetch_rows(
-      "SELECT `users_id_to`,
-              COUNT(*) AS total_events,
-              COUNT(DISTINCT `tickets_id`) AS tickets_count
-       FROM `{$table}`
-       WHERE {$whereSql}
-         AND `action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
-         AND `users_id_to` IS NOT NULL
-       GROUP BY `users_id_to`
-       ORDER BY total_events DESC, `users_id_to` ASC
-       LIMIT 10"
-   );
-   $topTechnicianRows = array_slice($technicianRows, 0, 5);
-
-   $dailyRows = plugin_atribuicaointeligente_distribution_fetch_rows(
-      "SELECT DATE(`date_creation`) AS distribution_day,
-              COUNT(*) AS total_events,
+    $dailyRows = plugin_atribuicaointeligente_distribution_fetch_rows(
+       "SELECT DATE(`date_creation`) AS distribution_day,
+               COUNT(*) AS total_events,
               COUNT(DISTINCT `tickets_id`) AS tickets_count
        FROM `{$table}`
        WHERE {$whereSql}
@@ -439,47 +482,82 @@ if ($DB->tableExists($table)) {
        LIMIT 120"
    );
 
-   $decisionTable = PluginAtribuicaointeligenteConfig::getDecisionLogsTable();
-   if ($DB->tableExists($decisionTable)) {
-      $whereSqlAliased = plugin_atribuicaointeligente_distribution_where($filters, 'dl');
-      $decisionLogWhereSql = plugin_atribuicaointeligente_distribution_decision_log_where($filters);
+    $decisionTable = PluginAtribuicaointeligenteConfig::getDecisionLogsTable();
+    if ($DB->tableExists($decisionTable)) {
+       $whereSqlAliased = plugin_atribuicaointeligente_distribution_where($filters, 'dl');
+      $decisionLogWhereSql = plugin_atribuicaointeligente_distribution_decision_log_where($filters, 'decisionlog');
+
+      $technicianRows = plugin_atribuicaointeligente_distribution_fetch_rows(
+         "SELECT technician_summary.`users_id_to`,
+                 COUNT(*) AS total_events,
+                 COUNT(DISTINCT technician_summary.`tickets_id`) AS tickets_count
+          FROM (
+             SELECT dl.`tickets_id`,
+                    dl.`users_id_to`
+             FROM `{$table}` dl
+             WHERE {$whereSqlAliased}
+               AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+               AND dl.`users_id_to` IS NOT NULL
+               AND dl.`users_id_to` > 0
+             UNION ALL
+             SELECT decisionlog.`tickets_id`,
+                    decisionlog.`selected_users_id` AS users_id_to
+             FROM `{$decisionTable}` decisionlog
+             WHERE {$decisionLogWhereSql}
+          ) technician_summary
+          GROUP BY technician_summary.`users_id_to`
+          ORDER BY total_events DESC, technician_summary.`users_id_to` ASC
+          LIMIT 10"
+      );
+      $topTechnicianRows = array_slice($technicianRows, 0, 5);
+
       $actuationRawRows = plugin_atribuicaointeligente_distribution_fetch_rows(
          "SELECT ticket_classification.`classification`,
                  COUNT(*) AS tickets_count,
                  SUM(ticket_classification.`total_events`) AS total_events
           FROM (
              SELECT ticket_summary.`tickets_id`,
-                    ticket_summary.`total_events`,
-                    CASE
-                       WHEN ticket_summary.`manual_technician_events` > 0
-                          THEN 'human_only'
-                       WHEN ticket_summary.`plugin_events` > 0
-                            AND (ticket_summary.`manual_events` > 0
-                                 OR ticket_summary.`plugin_update_events` > 0)
+                     ticket_summary.`total_events`,
+                     CASE
+                        WHEN ticket_summary.`manual_technician_events` > 0
+                           THEN 'human_only'
+                       WHEN ticket_summary.`plugin_update_events` > 0
                           THEN 'plugin_human'
-                       WHEN ticket_summary.`plugin_events` > 0
+                        WHEN ticket_summary.`plugin_events` > 0
                           THEN 'plugin_only'
                        ELSE 'human_only'
                     END AS classification
-             FROM (
-                SELECT dl.`tickets_id`,
-                       COUNT(*) AS total_events,
-                       SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_PLUGIN . "' THEN 1 ELSE 0 END) AS plugin_events,
-                       SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "' THEN 1 ELSE 0 END) AS manual_events,
-                       SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
-                                  AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
-                                THEN 1 ELSE 0 END) AS manual_technician_events,
-                       COUNT(DISTINCT decisionlog.`id`) AS plugin_update_events
-                FROM `{$table}` dl
-                LEFT JOIN `{$decisionTable}` decisionlog
-                  ON decisionlog.`tickets_id` = dl.`tickets_id`
-                 AND decisionlog.`reason` LIKE '%apos atualizacao%'
-                 AND {$decisionLogWhereSql}
-                WHERE {$whereSqlAliased}
-                GROUP BY dl.`tickets_id`
-             ) ticket_summary
-          ) ticket_classification
-          GROUP BY ticket_classification.`classification`"
+              FROM (
+                 SELECT ticket_events.`tickets_id`,
+                        SUM(ticket_events.`total_events`) AS total_events,
+                        SUM(ticket_events.`plugin_events`) AS plugin_events,
+                        SUM(ticket_events.`manual_technician_events`) AS manual_technician_events,
+                        SUM(ticket_events.`plugin_update_events`) AS plugin_update_events
+                 FROM (
+                    SELECT dl.`tickets_id`,
+                           COUNT(*) AS total_events,
+                           SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_PLUGIN . "' THEN 1 ELSE 0 END) AS plugin_events,
+                           SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
+                                      AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+                                    THEN 1 ELSE 0 END) AS manual_technician_events,
+                           0 AS plugin_update_events
+                    FROM `{$table}` dl
+                    WHERE {$whereSqlAliased}
+                    GROUP BY dl.`tickets_id`
+                    UNION ALL
+                    SELECT decisionlog.`tickets_id`,
+                           COUNT(*) AS total_events,
+                           COUNT(*) AS plugin_events,
+                           0 AS manual_technician_events,
+                           SUM(CASE WHEN decisionlog.`reason` LIKE '%apos atualizacao%' THEN 1 ELSE 0 END) AS plugin_update_events
+                    FROM `{$decisionTable}` decisionlog
+                    WHERE {$decisionLogWhereSql}
+                    GROUP BY decisionlog.`tickets_id`
+                 ) ticket_events
+                 GROUP BY ticket_events.`tickets_id`
+              ) ticket_summary
+           ) ticket_classification
+           GROUP BY ticket_classification.`classification`"
       );
 
       foreach ($actuationRawRows as $row) {
@@ -497,6 +575,20 @@ if ($DB->tableExists($table)) {
 
          return (int) ($right['total_events'] ?? 0) <=> (int) ($left['total_events'] ?? 0);
       });
+   } else {
+      $technicianRows = plugin_atribuicaointeligente_distribution_fetch_rows(
+         "SELECT `users_id_to`,
+                 COUNT(*) AS total_events,
+                 COUNT(DISTINCT `tickets_id`) AS tickets_count
+          FROM `{$table}`
+          WHERE {$whereSql}
+            AND `action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+            AND `users_id_to` IS NOT NULL
+          GROUP BY `users_id_to`
+          ORDER BY total_events DESC, `users_id_to` ASC
+          LIMIT 10"
+      );
+      $topTechnicianRows = array_slice($technicianRows, 0, 5);
    }
 
    $transferRows = plugin_atribuicaointeligente_distribution_fetch_rows(

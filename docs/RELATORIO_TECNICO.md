@@ -10,8 +10,8 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.2.3`
-- Ultima release documentada: `v1.2.3`
+- Versao atual: `1.2.4`
+- Ultima release documentada: `v1.2.4`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
 - VM de homologacao: `192.168.159.129`
@@ -303,6 +303,11 @@ interferencia manual de tecnico entram como Automacao integral. Quando o tecnico
 foi atribuido automaticamente apos atualizacao do chamado, a classificacao e
 Automacao parcial. A classificacao Atuacao manual e reservada para chamados sem
 atuacao do plugin ou para casos com alteracao manual do tecnico do chamado.
+Essa classificacao usa tanto `glpi_plugin_atribuicaointeligente_distribution_logs`
+quanto `glpi_plugin_atribuicaointeligente_decision_logs`, pois ambientes de
+producao podem conter automacoes registradas apenas como decisao do plugin.
+Os quadros de distribuicao por tecnico e top 5 tecnicos destino tambem consideram
+`selected_users_id` dos logs de decisao para nao ocultar atribuicoes automaticas.
 Os nomes de entidade sao decodificados antes da exibicao para evitar sequencias
 HTML como `&#62;` no caminho hierarquico.
 

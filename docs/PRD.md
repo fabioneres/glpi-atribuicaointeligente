@@ -6,7 +6,7 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.2.3 - classificacao gerencial por entidade |
+| Versao | 1.2.4 - classificacao gerencial com logs de decisao |
 | Data | 21 de agosto de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |
