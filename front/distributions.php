@@ -333,6 +333,7 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_whe
          $prefix . "`selected_users_id` IS NOT NULL",
          $prefix . "`tickets_id` IS NOT NULL",
          $prefix . "`tickets_id` > 0",
+         $prefix . "`reason` IN ('Tecnico atribuido automaticamente', 'Tecnico atribuido automaticamente apos atualizacao do chamado')",
       ];
 
       if (!Session::canViewAllEntities()) {
@@ -519,40 +520,65 @@ if ($DB->tableExists($table)) {
              SELECT ticket_summary.`tickets_id`,
                      ticket_summary.`total_events`,
                      CASE
-                        WHEN ticket_summary.`manual_technician_events` > 0
+                       WHEN ticket_summary.`manual_clear_events` > 0
+                            AND (ticket_summary.`plugin_events` = 0
+                                 OR ticket_summary.`last_manual_clear_date` >= ticket_summary.`last_plugin_date`)
                            THEN 'human_only'
                        WHEN ticket_summary.`plugin_update_events` > 0
                           THEN 'plugin_human'
-                        WHEN ticket_summary.`plugin_events` > 0
+                       WHEN ticket_summary.`plugin_only_events` > 0
                           THEN 'plugin_only'
-                       ELSE 'human_only'
-                    END AS classification
-              FROM (
-                 SELECT ticket_events.`tickets_id`,
-                        SUM(ticket_events.`total_events`) AS total_events,
-                        SUM(ticket_events.`plugin_events`) AS plugin_events,
-                        SUM(ticket_events.`manual_technician_events`) AS manual_technician_events,
-                        SUM(ticket_events.`plugin_update_events`) AS plugin_update_events
-                 FROM (
-                    SELECT dl.`tickets_id`,
-                           COUNT(*) AS total_events,
-                           SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_PLUGIN . "' THEN 1 ELSE 0 END) AS plugin_events,
-                           SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
-                                      AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
-                                    THEN 1 ELSE 0 END) AS manual_technician_events,
-                           0 AS plugin_update_events
-                    FROM `{$table}` dl
-                    WHERE {$whereSqlAliased}
-                    GROUP BY dl.`tickets_id`
-                    UNION ALL
-                    SELECT decisionlog.`tickets_id`,
-                           COUNT(*) AS total_events,
-                           COUNT(*) AS plugin_events,
-                           0 AS manual_technician_events,
-                           SUM(CASE WHEN decisionlog.`reason` LIKE '%apos atualizacao%' THEN 1 ELSE 0 END) AS plugin_update_events
-                    FROM `{$decisionTable}` decisionlog
-                    WHERE {$decisionLogWhereSql}
-                    GROUP BY decisionlog.`tickets_id`
+                       WHEN ticket_summary.`manual_clear_events` > 0
+                          THEN 'human_only'
+                        ELSE 'human_only'
+                     END AS classification
+               FROM (
+                  SELECT ticket_events.`tickets_id`,
+                         SUM(ticket_events.`total_events`) AS total_events,
+                         SUM(ticket_events.`plugin_events`) AS plugin_events,
+                         SUM(ticket_events.`plugin_only_events`) AS plugin_only_events,
+                         SUM(ticket_events.`plugin_update_events`) AS plugin_update_events,
+                         SUM(ticket_events.`manual_clear_events`) AS manual_clear_events,
+                         MAX(ticket_events.`last_plugin_date`) AS last_plugin_date,
+                         MAX(ticket_events.`last_manual_clear_date`) AS last_manual_clear_date
+                  FROM (
+                     SELECT dl.`tickets_id`,
+                            COUNT(*) AS total_events,
+                            0 AS plugin_events,
+                            0 AS plugin_only_events,
+                            0 AS plugin_update_events,
+                            SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
+                                       AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+                                      THEN 1
+                                     WHEN dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_ENTITY_TRANSFERRED . "'
+                                     THEN 1 ELSE 0 END) AS manual_technician_events,
+                            SUM(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
+                                       AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+                                      THEN 1
+                                     WHEN dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_ENTITY_TRANSFERRED . "'
+                                      THEN 1 ELSE 0 END) AS manual_clear_events,
+                            NULL AS last_plugin_date,
+                            MAX(CASE WHEN dl.`source` = '" . PluginAtribuicaointeligenteDistributionLog::SOURCE_MANUAL . "'
+                                       AND dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_TECHNICIAN_ASSIGNED . "'
+                                      THEN dl.`date_creation`
+                                     WHEN dl.`action_type` = '" . PluginAtribuicaointeligenteDistributionLog::ACTION_ENTITY_TRANSFERRED . "'
+                                      THEN dl.`date_creation` ELSE NULL END) AS last_manual_clear_date
+                     FROM `{$table}` dl
+                     WHERE {$whereSqlAliased}
+                     GROUP BY dl.`tickets_id`
+                     UNION ALL
+                     SELECT decisionlog.`tickets_id`,
+                            COUNT(*) AS total_events,
+                            SUM(CASE WHEN decisionlog.`reason` IN ('Tecnico atribuido automaticamente', 'Tecnico atribuido automaticamente apos atualizacao do chamado') THEN 1 ELSE 0 END) AS plugin_events,
+                            SUM(CASE WHEN decisionlog.`reason` = 'Tecnico atribuido automaticamente' THEN 1 ELSE 0 END) AS plugin_only_events,
+                            SUM(CASE WHEN decisionlog.`reason` = 'Tecnico atribuido automaticamente apos atualizacao do chamado' THEN 1 ELSE 0 END) AS plugin_update_events,
+                            0 AS manual_technician_events,
+                            0 AS manual_clear_events,
+                            MAX(CASE WHEN decisionlog.`reason` IN ('Tecnico atribuido automaticamente', 'Tecnico atribuido automaticamente apos atualizacao do chamado') THEN decisionlog.`date_creation` ELSE NULL END) AS last_plugin_date,
+                            NULL AS last_manual_clear_date
+                     FROM `{$decisionTable}` decisionlog
+                     WHERE {$decisionLogWhereSql}
+                     GROUP BY decisionlog.`tickets_id`
                  ) ticket_events
                  GROUP BY ticket_events.`tickets_id`
               ) ticket_summary
