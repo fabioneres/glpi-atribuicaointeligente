@@ -25,6 +25,9 @@ Esta pasta centraliza a documentacao tecnica, historica e operacional do plugin
   `docs/padroes/antipadroes-glpi-plugins.md`.
 - [CHECKLIST_DOCUMENTACAO_GLPI10.md](CHECKLIST_DOCUMENTACAO_GLPI10.md):
   checklist de aderencia documental, limitacoes, rollback e proximos passos.
+- [CHECKLIST_VALIDACAO_RELATORIO_DISTRIBUICOES_CLAUDE.md](CHECKLIST_VALIDACAO_RELATORIO_DISTRIBUICOES_CLAUDE.md):
+  checklist operacional para validacao do relatorio de distribuicoes, filtros,
+  entidades, rankings, metricas e graficos.
 
 ## Uso recomendado
 

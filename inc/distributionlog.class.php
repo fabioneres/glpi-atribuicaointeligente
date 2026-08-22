@@ -29,7 +29,7 @@ class PluginAtribuicaointeligenteDistributionLog extends CommonDBTM {
    }
 
    public static function getTypeName($nb = 0) {
-      return _n('Distribuicao de chamado', 'Distribuicoes de chamados', $nb, 'atribuicaointeligente');
+      return _n('Distribuição de chamado', 'Distribuições de chamados', $nb, 'atribuicaointeligente');
    }
 
    public static function getIcon() {

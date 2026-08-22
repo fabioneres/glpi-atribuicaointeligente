@@ -125,7 +125,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          2 => self::createTabEntry(__('Categorias', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-list-search'),
          3 => self::createTabEntry(__('Indisponibilidades', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-user-off'),
          4 => self::createTabEntry(__('Escala de atendimento', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-calendar-time'),
-         5 => self::createTabEntry(__('Distribuicoes', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-route'),
+         5 => self::createTabEntry(__('Distribuições', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-route'),
          6 => self::createTabEntry(__('Logs', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-list-details'),
          7 => self::createTabEntry(__('Sobre', 'atribuicaointeligente'), 0, $item::getType(), 'ti ti-info-circle'),
       ];

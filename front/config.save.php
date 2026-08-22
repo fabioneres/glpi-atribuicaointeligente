@@ -15,14 +15,27 @@ PluginAtribuicaointeligenteConfig::assertCanUpdateConfig();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    // O GLPI 10 ja valida tokens CSRF de POST em inc/includes.php.
    $entity = new PluginAtribuicaointeligenteAssignmentsEntity();
-   $entity->saveOptions([
-      'auto_assign_group'   => isset($_POST['auto_assign_group']) ? 1 : 0,
-      'auto_assign_type'    => isset($_POST['auto_assign_type']) ? (int) $_POST['auto_assign_type'] : 0,
-      'auto_assign_mode'    => isset($_POST['auto_assign_mode']) ? (int) $_POST['auto_assign_mode'] : 0,
-      'exclude_managers'    => isset($_POST['exclude_managers']) ? 1 : 0,
-      'use_entity_calendar' => isset($_POST['use_entity_calendar']) ? 1 : 0,
-      'assign_on_update'    => isset($_POST['assign_on_update']) ? 1 : 0,
-   ]);
+   $currentConfig = PluginAtribuicaointeligenteConfig::getConfigValues();
+   $options = $currentConfig;
+   if (isset($_POST['save']) || isset($_POST['entity_bulk_action'])) {
+      foreach (['auto_assign_group', 'exclude_managers', 'use_entity_calendar', 'assign_on_update'] as $field) {
+         if (array_key_exists($field, $_POST)) {
+            $options[$field] = 1;
+         } elseif (array_key_exists($field, $currentConfig) && isset($_POST['save'])) {
+            $options[$field] = 0;
+         }
+      }
+
+      if (array_key_exists('auto_assign_type', $_POST)) {
+         $options['auto_assign_type'] = (int) $_POST['auto_assign_type'];
+      }
+      if (array_key_exists('auto_assign_mode', $_POST)) {
+         $options['auto_assign_mode'] = (int) $_POST['auto_assign_mode'];
+      }
+
+      $entity->saveOptions($options);
+   }
+
    $bulkAction = (string) ($_POST['entity_bulk_action'] ?? '');
    if ($bulkAction === 'enable_all') {
       PluginAtribuicaointeligenteConfig::setAllManageableEntitiesActive(true);

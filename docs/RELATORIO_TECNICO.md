@@ -10,8 +10,8 @@ aplicadas e estado atual do projeto.
 - Plugin: Atribuicao Inteligente
 - Diretorio tecnico: `atribuicaointeligente`
 - Autor do fork: Fabio Neres
-- Versao atual: `1.2.6`
-- Ultima release documentada: `v1.2.6`
+- Versao atual: `1.3.0`
+- Ultima release documentada: `v1.3.0`
 - Repositorio GitHub: `fabioneres/glpi-atribuicaointeligente`
 - Pasta local inspecionada: `C:\Projetos\glpi\plugins\meusplugins\atribuicaointeligente`
 - VM de homologacao: `192.168.159.129`
@@ -280,21 +280,20 @@ Auditoria de distribuicoes manuais e automaticas:
 - `itilcategories_id`;
 - `date_creation`.
 
-A tela de Distribuicoes usa essa tabela para filtrar por periodo, distribuidor,
-tecnico destino, grupo, entidade do chamado, entidade origem da transferencia,
+A tela de Distribuicoes usa essa tabela para filtrar por periodo, entidade,
 categoria, origem manual/plugin e tipo de acao. Por decisao de performance, a
-tela exibe apenas totais e resumo por distribuidor, sem listar eventos
-detalhados. A visao gerencial inclui distribuicao por tecnico, top 5
-distribuidores, evolucao no periodo, atuacao por chamado, transferencias por
-entidade e top 5 tecnicos destino. Os indices principais cobrem ticket,
-distribuidor/data, acao/data, entidade/data, tecnico destino/data e grupo
+tela exibe indicadores, rankings e graficos consolidados, sem listar eventos
+detalhados. A visao gerencial inclui distribuicao por categoria, resumo por
+distribuidor, top distribuidores, evolucao no periodo, atuacao por chamado,
+transferencias por entidade e top tecnicos destino. Os indices principais cobrem
+ticket, distribuidor/data, acao/data, entidade/data, tecnico destino/data e grupo
 destino/data.
 
 Por clareza operacional, o resumo por distribuidor exibe apenas os 5 maiores
 distribuidores do periodo, ordenados por quantidade de chamados em ordem
-decrescente. A distribuicao por tecnico e limitada aos 10 tecnicos com maior
-volume de distribuicao. A classificacao de atuacao por chamado tambem e exibida
-em ordem decrescente de chamados.
+decrescente. A distribuicao por categoria e limitada pelo valor configurado no
+painel de graficos. A classificacao de atuacao por chamado tambem e exibida em
+ordem decrescente de chamados.
 
 A classificacao "Atuacao por chamado" e calculada no nivel do chamado, nao no
 nivel do evento. Ela separa chamados em Automacao integral, Automacao parcial e
@@ -312,8 +311,8 @@ entra como evidencia de intervencao humana clara, como atribuicao manual de
 tecnico ou transferencia do chamado na entidade filtrada. Uma acao manual so
 sobrepoe a automacao quando ocorre depois da decisao do plugin ou quando nao
 existe decisao automatica para o chamado.
-Os quadros de distribuicao por tecnico e top 5 tecnicos destino tambem consideram
-`selected_users_id` dos logs de decisao para nao ocultar atribuicoes automaticas.
+O quadro de top tecnicos destino tambem considera `selected_users_id` dos logs de
+decisao para nao ocultar atribuicoes automaticas.
 Essa contagem usa filtro proprio de tecnico destino e nao reaproveita a regra
 estrita de classificacao, para preservar tecnicos recebidos mesmo quando a
 classificacao estiver limitada aos motivos gerenciais de automacao.
@@ -323,8 +322,8 @@ HTML como `&#62;` no caminho hierarquico.
 Os filtros da tela de Distribuicoes sao persistidos na sessao do usuario para
 manter o ultimo criterio visivel e aplicado ao retornar para a aba. O botao
 Limpar remove explicitamente esse estado salvo e volta aos filtros padrao.
-Quando a entidade do chamado esta selecionada, os filtros de distribuidor e
-tecnico destino exibem apenas usuarios presentes nos logs daquela entidade.
+Quando a entidade esta selecionada, os relatorios exibem apenas distribuidores e
+tecnicos coerentes com a entidade filtrada.
 
 ## Funcionalidades implementadas
 

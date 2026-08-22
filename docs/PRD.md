@@ -6,8 +6,8 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.2.6 - contagem de tecnicos destino preservada |
-| Data | 21 de agosto de 2026 |
+| Versao | 1.3.0 - dashboard de distribuicoes configuravel |
+| Data | 22 de agosto de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |
 | Objetivo desta versao | Consolidar o entendimento de produto da versao atual e orientar evolucoes futuras sem autorizar mudancas automaticas de codigo. |
@@ -63,7 +63,7 @@ Ambientes GLPI com grande volume de chamados, equipes e categorias sofrem quando
 | Distribuicao | Atribuicao automatica por balanceamento ou rodizio, usando categoria ITIL e grupo responsavel, na criacao e opcionalmente na atualizacao do chamado. |
 | Disponibilidade | Cadastro de ferias, ausencias temporarias, datas especificas e recorrencias semanais. |
 | Escala | Cadastro de horarios semanais por tecnico, entidade, periodo de validade e status ativo/inativo. |
-| Auditoria | Log paginado de decisoes com chamado, entidade, grupo, tecnico escolhido, tecnicos ignorados e motivo; relatorio de distribuicoes com filtros por periodo, distribuidor, tecnico destino, grupo, entidade, categoria, chamado, origem manual/plugin e tipo de acao. |
+| Auditoria | Log paginado de decisoes com chamado, entidade, grupo, tecnico escolhido, tecnicos ignorados e motivo; relatorio de distribuicoes com filtros simplificados por periodo, entidade, categoria, origem e tipo de acao, KPIs, rankings por chamados, classificacao gerencial e graficos configuraveis. |
 | Protecao backend | Bloqueio server-side de atribuicao manual para tecnico indisponivel quando a entidade esta ativa. |
 
 ### 4.2 Escopo proposto para evolucao
