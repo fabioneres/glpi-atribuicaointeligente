@@ -712,7 +712,7 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       global $DB;
 
       self::ensureDefaultConfig();
-      $config = array_merge(self::getDefaultConfig(), $values);
+      $config = array_merge(self::getDefaultConfig(), self::getConfigValues(), $values);
       $payload = [
          'auto_assign_group'   => (int) $config['auto_assign_group'],
          'auto_assign_type'    => (int) $config['auto_assign_type'],

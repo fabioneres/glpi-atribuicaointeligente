@@ -6,7 +6,7 @@ Automacao da distribuicao de chamados por categoria, grupo, disponibilidade e es
 
 | Documento | Valor |
 | --- | --- |
-| Versao | 1.3.0 - dashboard de distribuicoes configuravel |
+| Versao | 1.3.1 - dashboard de distribuicoes configuravel e escopo multi-entidade corrigido |
 | Data | 22 de agosto de 2026 |
 | Produto | Plugin Atribuicao Inteligente para GLPI 10 |
 | Situacao | Funcionalidade implementada; PRD alinhado para validacao documental |

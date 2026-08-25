@@ -270,6 +270,30 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_has_filter')) {
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_session_entities')) {
+   function plugin_atribuicaointeligente_distribution_session_entities(): array {
+      $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
+      if (empty($entities) && isset($_SESSION['glpiactive_entity'])) {
+         $entities[] = (int) $_SESSION['glpiactive_entity'];
+      }
+
+      return array_values(array_unique(array_filter($entities, static function($entityId) {
+         return $entityId >= 0;
+      })));
+   }
+}
+
+if (!function_exists('plugin_atribuicaointeligente_distribution_effective_entity')) {
+   function plugin_atribuicaointeligente_distribution_effective_entity(array $filters) {
+      if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
+         return (int) $filters['entities_id'];
+      }
+
+      $entities = plugin_atribuicaointeligente_distribution_session_entities();
+      return count($entities) === 1 ? (int) $entities[0] : null;
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_distribution_entity_dropdown')) {
    function plugin_atribuicaointeligente_distribution_entity_dropdown(string $name, $value): void {
       global $DB;
@@ -277,8 +301,13 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_entity_dropdown'
       echo '<select class="form-select" name="' . plugin_atribuicaointeligente_distribution_escape($name) . '">';
       echo '<option value="">' . plugin_atribuicaointeligente_distribution_escape(__('Todas', 'atribuicaointeligente')) . '</option>';
 
-      if ($DB->tableExists('glpi_entities')) {
-         $result = $DB->doQuery('SELECT `id`, `completename`, `name` FROM `glpi_entities` ORDER BY `completename` ASC, `name` ASC, `id` ASC');
+      $entities = plugin_atribuicaointeligente_distribution_session_entities();
+      if ($DB->tableExists('glpi_entities') && !empty($entities)) {
+         $entitySql = implode(',', $entities);
+         $result = $DB->doQuery("SELECT `id`, `completename`, `name`
+                                 FROM `glpi_entities`
+                                 WHERE `id` IN ({$entitySql})
+                                 ORDER BY `completename` ASC, `name` ASC, `id` ASC");
          while ($result && ($row = $result->fetch_assoc())) {
             $entityId = (int) ($row['id'] ?? 0);
             $entityName = (string) ($row['completename'] ?? '');
@@ -579,19 +608,15 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_chart_color_inpu
 if (!function_exists('plugin_atribuicaointeligente_distribution_user_entity_condition')) {
    function plugin_atribuicaointeligente_distribution_user_entity_condition(string $userSql, array $filters, bool $allowSystem = false): string {
       $userSql = trim($userSql);
-      if ($userSql === '' || !plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
+      $entityId = plugin_atribuicaointeligente_distribution_effective_entity($filters);
+      if ($userSql === '' || $entityId === null) {
          return '1 = 1';
       }
 
-      $entityId = (int) $filters['entities_id'];
+      $entityId = (int) $entityId;
       $userProfileCondition = "{$userSql} > 0
          AND (
-            NOT EXISTS (
-               SELECT 1
-               FROM `glpi_profiles_users` pu_any
-               WHERE pu_any.`users_id` = {$userSql}
-            )
-            OR EXISTS (
+            EXISTS (
                SELECT 1
                FROM `glpi_profiles_users` pu
                LEFT JOIN `glpi_entities` selected_entity
@@ -619,21 +644,33 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_user_entity_cond
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_primary_entity_condition')) {
+   function plugin_atribuicaointeligente_distribution_primary_entity_condition(array $filters, string $alias = ''): string {
+      $entityId = plugin_atribuicaointeligente_distribution_effective_entity($filters);
+      if ($entityId === null) {
+         return '1 = 1';
+      }
+
+      $prefix = $alias !== '' ? '`' . preg_replace('/[^a-zA-Z0-9_]/', '', $alias) . '`.' : '';
+      return $prefix . '`entities_id` = ' . (int) $entityId;
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
    function plugin_atribuicaointeligente_distribution_where(array $filters, string $alias = ''): string {
       $clauses = ['1 = 1'];
       $prefix = $alias !== '' ? '`' . preg_replace('/[^a-zA-Z0-9_]/', '', $alias) . '`.' : '';
 
-      if (!Session::canViewAllEntities()) {
-         $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
-         $entities[] = 0;
-         $entities = array_values(array_unique(array_filter($entities, static function($entityId) {
-            return $entityId >= 0;
-         })));
-         if (empty($entities)) {
-            $entities = [0];
-         }
-         $clauses[] = $prefix . '`entities_id` IN (' . implode(',', $entities) . ')';
+      $entities = plugin_atribuicaointeligente_distribution_session_entities();
+      if (!empty($entities)) {
+         $entitySql = implode(',', $entities);
+         $clauses[] = '('
+            . $prefix . "`entities_id` IN ({$entitySql})"
+            . ' OR ' . $prefix . "`entities_id_from` IN ({$entitySql})"
+            . ' OR ' . $prefix . "`entities_id_to` IN ({$entitySql})"
+            . ')';
+      } else {
+         $clauses[] = '1 = 0';
       }
 
       if ($filters['date_start'] !== '') {
@@ -677,16 +714,11 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_whe
          $prefix . "`reason` IN ('Tecnico atribuido automaticamente', 'Tecnico atribuido automaticamente apos atualizacao do chamado')",
       ];
 
-      if (!Session::canViewAllEntities()) {
-         $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
-         $entities[] = 0;
-         $entities = array_values(array_unique(array_filter($entities, static function($entityId) {
-            return $entityId >= 0;
-         })));
-         if (empty($entities)) {
-            $entities = [0];
-         }
+      $entities = plugin_atribuicaointeligente_distribution_session_entities();
+      if (!empty($entities)) {
          $clauses[] = $prefix . '`entities_id` IN (' . implode(',', $entities) . ')';
+      } else {
+         $clauses[] = '1 = 0';
       }
       if ($filters['date_start'] !== '') {
          $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
@@ -724,16 +756,11 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_technic
          $prefix . "`tickets_id` > 0",
       ];
 
-      if (!Session::canViewAllEntities()) {
-         $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
-         $entities[] = 0;
-         $entities = array_values(array_unique(array_filter($entities, static function($entityId) {
-            return $entityId >= 0;
-         })));
-         if (empty($entities)) {
-            $entities = [0];
-         }
+      $entities = plugin_atribuicaointeligente_distribution_session_entities();
+      if (!empty($entities)) {
          $clauses[] = $prefix . '`entities_id` IN (' . implode(',', $entities) . ')';
+      } else {
+         $clauses[] = '1 = 0';
       }
       if ($filters['date_start'] !== '') {
          $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
@@ -782,6 +809,7 @@ PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
 $whereSql = plugin_atribuicaointeligente_distribution_where($filters);
 $chartDataLimit = (int) $filters['chart_data_limit'];
 $actorEntitySql = plugin_atribuicaointeligente_distribution_user_entity_condition('`users_id_actor`', $filters, true);
+$actorPrimaryEntitySql = plugin_atribuicaointeligente_distribution_primary_entity_condition($filters);
 $technicianEntitySql = plugin_atribuicaointeligente_distribution_user_entity_condition('technician_summary.`users_id_to`', $filters);
 $technicianDirectEntitySql = plugin_atribuicaointeligente_distribution_user_entity_condition('`users_id_to`', $filters);
 $summaryRows = [];
@@ -858,6 +886,7 @@ if ($DB->tableExists($table)) {
        FROM `{$table}`
        WHERE {$whereSql}
          AND {$actorEntitySql}
+         AND {$actorPrimaryEntitySql}
        GROUP BY `users_id_actor`
        ORDER BY tickets_count DESC, transfer_tickets DESC, `users_id_actor` ASC
        LIMIT {$chartDataLimit}"
@@ -874,6 +903,7 @@ if ($DB->tableExists($table)) {
        FROM `{$table}`
        WHERE {$whereSql}
          AND {$actorEntitySql}
+         AND {$actorPrimaryEntitySql}
        GROUP BY `users_id_actor`
        ORDER BY tickets_count DESC, `users_id_actor` ASC
        LIMIT {$chartDataLimit}"
