@@ -619,20 +619,8 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_user_entity_cond
             EXISTS (
                SELECT 1
                FROM `glpi_profiles_users` pu
-               LEFT JOIN `glpi_entities` selected_entity
-                  ON selected_entity.`id` = {$entityId}
                WHERE pu.`users_id` = {$userSql}
-                 AND (
-                    pu.`entities_id` = {$entityId}
-                    OR (
-                       pu.`is_recursive` = 1
-                       AND (
-                          pu.`entities_id` = 0
-                          OR selected_entity.`ancestors_cache` LIKE CONCAT('%\"', pu.`entities_id`, '\"%')
-                          OR selected_entity.`ancestors_cache` LIKE CONCAT('%i:', pu.`entities_id`, ';%')
-                       )
-                    )
-                 )
+                 AND pu.`entities_id` = {$entityId}
             )
          )";
 
@@ -641,18 +629,6 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_user_entity_cond
       }
 
       return $userProfileCondition;
-   }
-}
-
-if (!function_exists('plugin_atribuicaointeligente_distribution_primary_entity_condition')) {
-   function plugin_atribuicaointeligente_distribution_primary_entity_condition(array $filters, string $alias = ''): string {
-      $entityId = plugin_atribuicaointeligente_distribution_effective_entity($filters);
-      if ($entityId === null) {
-         return '1 = 1';
-      }
-
-      $prefix = $alias !== '' ? '`' . preg_replace('/[^a-zA-Z0-9_]/', '', $alias) . '`.' : '';
-      return $prefix . '`entities_id` = ' . (int) $entityId;
    }
 }
 
@@ -809,7 +785,6 @@ PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
 $whereSql = plugin_atribuicaointeligente_distribution_where($filters);
 $chartDataLimit = (int) $filters['chart_data_limit'];
 $actorEntitySql = plugin_atribuicaointeligente_distribution_user_entity_condition('`users_id_actor`', $filters, true);
-$actorPrimaryEntitySql = plugin_atribuicaointeligente_distribution_primary_entity_condition($filters);
 $technicianEntitySql = plugin_atribuicaointeligente_distribution_user_entity_condition('technician_summary.`users_id_to`', $filters);
 $technicianDirectEntitySql = plugin_atribuicaointeligente_distribution_user_entity_condition('`users_id_to`', $filters);
 $summaryRows = [];
@@ -886,7 +861,6 @@ if ($DB->tableExists($table)) {
        FROM `{$table}`
        WHERE {$whereSql}
          AND {$actorEntitySql}
-         AND {$actorPrimaryEntitySql}
        GROUP BY `users_id_actor`
        ORDER BY tickets_count DESC, transfer_tickets DESC, `users_id_actor` ASC
        LIMIT {$chartDataLimit}"
@@ -903,7 +877,6 @@ if ($DB->tableExists($table)) {
        FROM `{$table}`
        WHERE {$whereSql}
          AND {$actorEntitySql}
-         AND {$actorPrimaryEntitySql}
        GROUP BY `users_id_actor`
        ORDER BY tickets_count DESC, `users_id_actor` ASC
        LIMIT {$chartDataLimit}"
