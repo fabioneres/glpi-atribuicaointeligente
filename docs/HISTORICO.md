@@ -11,8 +11,73 @@ NexTool, transformado em plugin independente para GLPI 10. Ele preserva a
 logica original de atribuicao automatica e acrescenta regras de
 disponibilidade, escala e controle por entidade.
 
-Estado atual: plugin funcional em homologacao, versao **1.3.1**, publicado em
+Estado atual: plugin funcional em homologacao, versao **1.3.2**, publicado em
 repositorio privado como `glpi-atribuicaointeligente`.
+
+## Alteracoes da versao 1.3.2
+
+Release exclusivamente de seguranca, a partir do Security Release Gate aplicado
+a 1.3.1 (relatorio em `docs/atribuicaointeligente/validacoes/security-gate-1.3.1.md`
+no workspace). Nenhuma funcionalidade nova.
+
+### Atencao ao atualizar
+
+Dois ajustes apertam permissoes e mudam comportamento visivel para perfis com o
+direito do plugin restrito a uma subentidade:
+
+1. Nao e mais possivel criar, editar, ativar/desativar ou excluir
+   indisponibilidade e escala com entidade "Todas / global" (`entities_id = 0`)
+   nem de entidade ancestral. Isso passa a exigir acesso direto aquela entidade.
+   Registros globais continuam visiveis na listagem, mas sem botao de edicao.
+2. A aba Categorias passa a listar apenas regras de categorias das entidades
+   visiveis, e a acao em massa "Alterar grupo responsavel" exige acesso direto a
+   entidade da categoria e um grupo valido para ela.
+
+Quem administra a partir da entidade raiz nao e afetado.
+
+### Corrigido
+
+- Isolamento entre entidades na escrita de indisponibilidades e escalas. O
+  helper de entidade usava a flag recursiva de `Session::haveAccessToEntity()`,
+  que autoriza entidades ancestrais e a raiz. A flag serve a leitura de item
+  recursivo, nao a gravacao. Passa a seguir a mesma assimetria do core, onde
+  `CommonDBTM::canViewItem()` usa `checkEntity(true)` e
+  `CommonDBTM::canUpdateItem()` usa `checkEntity()`.
+- Isolamento entre entidades nas regras de categoria. A tabela de regras nao
+  tem `entities_id`, entao `isEntityAssign()` e falso e o Search nao aplicava
+  restricao de entidade. Adicionado
+  `plugin_atribuicaointeligente_addDefaultWhere()`, que restringe a pesquisa
+  pela entidade da categoria ITIL, e `canViewItem()`/`canUpdateItem()` no
+  itemtype.
+- Acao em massa "Alterar grupo responsavel", que grava em `glpi_itilcategories`
+  (tabela nativa), validava apenas o direito global do plugin. Agora valida
+  acesso a entidade da categoria e se o grupo escolhido e valido para ela.
+- Reconcessao automatica de direitos. `syncCurrentProfileRight()` roda em
+  `plugin_init()` a cada requisicao de qualquer usuario autenticado e chamava a
+  reparacao de perfis, que executa `UPDATE` em `glpi_profilerights`. Uma
+  revogacao deliberada do administrador era desfeita em silencio no acesso
+  seguinte. O metodo passa a ser somente leitura; a reparacao acontece apenas
+  na instalacao/atualizacao.
+- DDL em runtime. `ALTER TABLE`, `SHOW INDEX` e `SHOW COLUMNS` eram executados a
+  cada requisicao, inclusive nos hooks de chamado. DDL provoca COMMIT implicito
+  no MySQL/MariaDB e podia confirmar trabalho parcial de uma transacao do core,
+  alem de travar tabelas. Todo o DDL foi concentrado no passo `schema` da
+  instalacao/atualizacao.
+- Dado pessoal no log de decisao. A justificativa da ausencia (`comment`) era
+  copiada para o motivo da decisao e ficava visivel na aba Logs para qualquer
+  perfil com leitura do plugin. O motivo passa a registrar apenas tipo e
+  periodo.
+- `addslashes()` substituido por `DBmysql::quoteValue()` na montagem de SQL do
+  relatorio de distribuicoes e do log. Nao havia injecao explorável, porque os
+  valores ja passavam por regex e whitelist, mas `addslashes` nao e o mecanismo
+  do GLPI nem e charset-aware.
+
+### Removido
+
+- `front/available_users.ajax.php`. Endpoint sem nenhuma referencia no plugin,
+  acessivel a qualquer usuario com acesso central e fora de `ajax/`, onde o core
+  preserva o token CSRF. Movido para `lixeira/2026-09-17/atribuicaointeligente/`
+  no workspace.
 
 ## Objetivo
 

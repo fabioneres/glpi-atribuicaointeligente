@@ -16,7 +16,6 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
 
    protected $DB;
    protected $assignmentTable;
-   protected static $schemaChecked = false;
 
    public function __construct() {
       global $DB;
@@ -44,8 +43,6 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
          return;
       }
 
-      $this->ensureSchema();
-
       $sql = "INSERT INTO `{$this->assignmentTable}` (`itilcategories_id`, `is_active`)
               SELECT ic.id, 0
               FROM `glpi_itilcategories` ic
@@ -68,8 +65,6 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
          return;
       }
 
-      $this->ensureSchema();
-
       $sql = "INSERT INTO `{$this->assignmentTable}` (`itilcategories_id`, `is_active`)
               SELECT {$itilCategory}, 0
               WHERE NOT EXISTS (
@@ -80,20 +75,21 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
       $this->executeQuery($sql, 'insertItilCategory');
    }
 
-   protected function ensureSchema(): void {
-      if (self::$schemaChecked) {
+   /**
+    * Ajusta o schema da tabela de regras. Somente instalacao/atualizacao (DDL).
+    */
+   public static function installSchema(): void {
+      global $DB;
+
+      $table = PluginAtribuicaointeligenteConfig::getAssignmentsTable();
+      if (!$DB->tableExists($table)) {
          return;
       }
 
-      if (!$this->DB->tableExists($this->assignmentTable)) {
-         return;
-      }
-
-      $this->DB->doQuery(
-         "ALTER TABLE `{$this->assignmentTable}`
+      $DB->doQuery(
+         "ALTER TABLE `{$table}`
           MODIFY `is_active` tinyint NOT NULL DEFAULT 0"
       );
-      self::$schemaChecked = true;
    }
 
    public function deleteItilCategory($itilCategory): void {

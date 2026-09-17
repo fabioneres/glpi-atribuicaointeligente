@@ -15,7 +15,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.3.1');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.3.2');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_DIR')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_DIR', __DIR__);
@@ -53,12 +53,19 @@ function plugin_atribuicaointeligente_install() {
       'install_rights' => function() {
          PluginAtribuicaointeligenteConfig::installRights();
       },
+      // Todo o DDL do plugin fica concentrado aqui. Em runtime o plugin apenas
+      // le o schema, porque DDL provoca COMMIT implicito e pode confirmar
+      // trabalho parcial de uma transacao do core.
+      'schema' => function() {
+         PluginAtribuicaointeligenteConfig::installConfigSchema();
+         PluginAtribuicaointeligenteConfig::installEntityConfigSchema();
+         PluginAtribuicaointeligenteConfig::installDecisionLogSchema();
+         PluginAtribuicaointeligenteConfig::installDistributionLogSchema();
+         PluginAtribuicaointeligenteAssignmentsEntity::installSchema();
+      },
       'default_config' => function() {
          PluginAtribuicaointeligenteConfig::ensureDisplayItem();
          PluginAtribuicaointeligenteConfig::ensureDefaultConfig();
-         PluginAtribuicaointeligenteConfig::ensureEntityConfigSchema();
-         PluginAtribuicaointeligenteConfig::ensureDecisionLogSchema();
-         PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
       },
       'migrate_nextool' => function() {
          PluginAtribuicaointeligenteConfig::migrateFromNextool();
@@ -117,4 +124,19 @@ function plugin_atribuicaointeligente_MassiveActionsFieldsDisplay($options = [])
 
 function plugin_atribuicaointeligente_giveItem($itemtype, $ID, $data, $num) {
    return PluginAtribuicaointeligenteCategoryAssignment::giveItem($itemtype, $ID, $data, $num);
+}
+
+/**
+ * Restringe a pesquisa de regras de categoria as entidades visiveis.
+ *
+ * Chamado por Search::addDefaultWhere() para o itemtype do plugin. Necessario
+ * porque a tabela de regras nao possui entities_id: sem isso o Search lista
+ * regras de todas as entidades.
+ */
+function plugin_atribuicaointeligente_addDefaultWhere($itemtype) {
+   if ($itemtype !== PluginAtribuicaointeligenteCategoryAssignment::class) {
+      return '';
+   }
+
+   return PluginAtribuicaointeligenteCategoryAssignment::getSearchEntityRestriction();
 }

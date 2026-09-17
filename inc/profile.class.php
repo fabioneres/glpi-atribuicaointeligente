@@ -104,6 +104,15 @@ class PluginAtribuicaointeligenteProfile extends Profile {
       ], true);
    }
 
+   /**
+    * Sincroniza na sessao o valor do direito ja gravado no banco.
+    *
+    * Somente leitura, porque roda em plugin_init() a cada requisicao de
+    * qualquer usuario autenticado. A reparacao de perfis sem direito acontece
+    * apenas na instalacao/atualizacao: executar isso aqui faria o acesso de um
+    * usuario comum reconceder permissao e desfazer, em silencio, uma
+    * revogacao deliberada do administrador.
+    */
    public static function syncCurrentProfileRight(): void {
       global $DB;
 
@@ -126,20 +135,6 @@ class PluginAtribuicaointeligenteProfile extends Profile {
          'LIMIT' => 1,
       ]);
       $row = $iterator->current();
-
-      if (!$row || (int) ($row['rights'] ?? 0) === 0) {
-         PluginAtribuicaointeligenteConfig::repairEmptyRightsForConfigAdmins();
-         $iterator = $DB->request([
-            'SELECT' => ['rights'],
-            'FROM'   => 'glpi_profilerights',
-            'WHERE'  => [
-               'profiles_id' => $profiles_id,
-               'name'        => $right,
-            ],
-            'LIMIT' => 1,
-         ]);
-         $row = $iterator->current();
-      }
 
       if ($row) {
          $_SESSION['glpiactiveprofile'][$right] = (int) ($row['rights'] ?? 0);

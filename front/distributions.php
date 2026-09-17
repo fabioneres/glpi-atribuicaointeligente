@@ -634,6 +634,8 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_user_entity_cond
 
 if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
    function plugin_atribuicaointeligente_distribution_where(array $filters, string $alias = ''): string {
+      global $DB;
+
       $clauses = ['1 = 1'];
       $prefix = $alias !== '' ? '`' . preg_replace('/[^a-zA-Z0-9_]/', '', $alias) . '`.' : '';
 
@@ -650,10 +652,10 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
       }
 
       if ($filters['date_start'] !== '') {
-         $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+         $clauses[] = $prefix . "`date_creation` >= " . $DB->quoteValue($filters['date_start'] . ' 00:00:00');
       }
       if ($filters['date_end'] !== '') {
-         $clauses[] = $prefix . "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+         $clauses[] = $prefix . "`date_creation` <= " . $DB->quoteValue($filters['date_end'] . ' 23:59:59');
       }
 
       if ((int) ($filters['itilcategories_id'] ?? 0) > 0) {
@@ -669,10 +671,10 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
       }
 
       if ($filters['action_type'] !== '') {
-         $clauses[] = $prefix . "`action_type` = '" . addslashes($filters['action_type']) . "'";
+         $clauses[] = $prefix . "`action_type` = " . $DB->quoteValue($filters['action_type']);
       }
       if ($filters['source'] !== '') {
-         $clauses[] = $prefix . "`source` = '" . addslashes($filters['source']) . "'";
+         $clauses[] = $prefix . "`source` = " . $DB->quoteValue($filters['source']);
       }
 
       return implode(' AND ', $clauses);
@@ -681,6 +683,8 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_where')) {
 
 if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_where')) {
    function plugin_atribuicaointeligente_distribution_decision_log_where(array $filters, string $alias = 'decisionlog'): string {
+      global $DB;
+
       $alias = preg_replace('/[^a-zA-Z0-9_]/', '', $alias);
       $prefix = '`' . $alias . '`.';
       $clauses = [
@@ -697,10 +701,10 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_whe
          $clauses[] = '1 = 0';
       }
       if ($filters['date_start'] !== '') {
-         $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+         $clauses[] = $prefix . "`date_creation` >= " . $DB->quoteValue($filters['date_start'] . ' 00:00:00');
       }
       if ($filters['date_end'] !== '') {
-         $clauses[] = $prefix . "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+         $clauses[] = $prefix . "`date_creation` <= " . $DB->quoteValue($filters['date_end'] . ' 23:59:59');
       }
       if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
          $clauses[] = $prefix . "`entities_id` = " . (int) $filters['entities_id'];
@@ -723,6 +727,8 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_log_whe
 
 if (!function_exists('plugin_atribuicaointeligente_distribution_decision_technician_where')) {
    function plugin_atribuicaointeligente_distribution_decision_technician_where(array $filters, string $alias = 'decisionlog'): string {
+      global $DB;
+
       $alias = preg_replace('/[^a-zA-Z0-9_]/', '', $alias);
       $prefix = '`' . $alias . '`.';
       $clauses = [
@@ -739,10 +745,10 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_decision_technic
          $clauses[] = '1 = 0';
       }
       if ($filters['date_start'] !== '') {
-         $clauses[] = $prefix . "`date_creation` >= '" . addslashes($filters['date_start']) . " 00:00:00'";
+         $clauses[] = $prefix . "`date_creation` >= " . $DB->quoteValue($filters['date_start'] . ' 00:00:00');
       }
       if ($filters['date_end'] !== '') {
-         $clauses[] = $prefix . "`date_creation` <= '" . addslashes($filters['date_end']) . " 23:59:59'";
+         $clauses[] = $prefix . "`date_creation` <= " . $DB->quoteValue($filters['date_end'] . ' 23:59:59');
       }
       if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
          $clauses[] = $prefix . "`entities_id` = " . (int) $filters['entities_id'];
@@ -779,8 +785,6 @@ if (empty($_GET['distribution_clear']) && plugin_atribuicaointeligente_distribut
 } else {
    $filters = plugin_atribuicaointeligente_distribution_normalize_filters([]);
 }
-
-PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
 
 $whereSql = plugin_atribuicaointeligente_distribution_where($filters);
 $chartDataLimit = (int) $filters['chart_data_limit'];

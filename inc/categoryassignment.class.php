@@ -34,6 +34,91 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
       return Plugin::getWebDir('atribuicaointeligente') . '/front/categories.php';
    }
 
+   /**
+    * A regra nao tem entidade propria: ela herda a entidade da categoria ITIL
+    * relacionada. Como a tabela nao possui entities_id, isEntityAssign() e
+    * falso e nem o Search nem o CommonDBTM aplicam restricao de entidade por
+    * conta propria. Os metodos abaixo reintroduzem esse controle.
+    *
+    * A assimetria entre leitura e escrita segue o core: CommonDBTM::canViewItem()
+    * usa checkEntity(true), que aceita item recursivo de entidade ancestral, e
+    * CommonDBTM::canUpdateItem() usa checkEntity(), que exige acesso direto.
+    */
+   public static function canAccessCategory(int $itilcategoriesId, bool $forUpdate = false): bool {
+      if ($itilcategoriesId <= 0) {
+         return false;
+      }
+
+      $category = new ITILCategory();
+      if (!$category->getFromDB($itilcategoriesId)) {
+         return false;
+      }
+
+      $entitiesId = (int) ($category->fields['entities_id'] ?? 0);
+      if ($forUpdate) {
+         return Session::haveAccessToEntity($entitiesId);
+      }
+
+      return Session::haveAccessToEntity($entitiesId, (bool) ($category->fields['is_recursive'] ?? false));
+   }
+
+   /**
+    * Verifica se o grupo pode ser usado por uma categoria da entidade indicada,
+    * com a mesma regra de visibilidade que o GLPI aplica ao dropdown de grupos.
+    */
+   public static function isGroupUsableForCategory(int $groupsId, int $categoryEntityId): bool {
+      if ($groupsId <= 0) {
+         // Valor vazio remove o grupo responsavel.
+         return true;
+      }
+
+      $group = new Group();
+      if (!$group->getFromDB($groupsId)) {
+         return false;
+      }
+
+      $groupEntity = (int) ($group->fields['entities_id'] ?? 0);
+      if (!Session::haveAccessToEntity($groupEntity, (bool) ($group->fields['is_recursive'] ?? false))) {
+         return false;
+      }
+
+      if ($groupEntity === $categoryEntityId) {
+         return true;
+      }
+
+      return !empty($group->fields['is_recursive'])
+         && in_array($groupEntity, getAncestorsOf('glpi_entities', $categoryEntityId), false);
+   }
+
+   /**
+    * Condicao de entidade injetada no Search via
+    * plugin_atribuicaointeligente_addDefaultWhere().
+    */
+   public static function getSearchEntityRestriction(): string {
+      if (Session::canViewAllEntities()) {
+         return '';
+      }
+
+      $restrict = getEntitiesRestrictRequest('', 'glpi_itilcategories', '', '', true);
+      if (trim($restrict) === '') {
+         return '';
+      }
+
+      return '`' . self::getTable() . '`.`itilcategories_id` IN ('
+         . ' SELECT `id` FROM `glpi_itilcategories` WHERE ' . $restrict
+         . ')';
+   }
+
+   public function canViewItem() {
+      return parent::canViewItem()
+         && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0));
+   }
+
+   public function canUpdateItem() {
+      return parent::canUpdateItem()
+         && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0), true);
+   }
+
    public function rawSearchOptions() {
       $tab = [];
 
@@ -236,7 +321,24 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
          }
 
          $itilcategoriesId = (int) ($assignment->fields['itilcategories_id'] ?? 0);
-         if ($itilcategoriesId > 0 && $entity->updateCategoryGroup($itilcategoriesId, $groupsId)) {
+         $category = new ITILCategory();
+         if ($itilcategoriesId <= 0 || !$category->getFromDB($itilcategoriesId)) {
+            $ma->itemDone($itemtype, (int) $key, MassiveAction::ACTION_KO);
+            continue;
+         }
+
+         // A acao grava em glpi_itilcategories, que e tabela nativa e tem
+         // entidade propria. O direito global do plugin nao basta: e preciso
+         // acesso direto a entidade da categoria e um grupo valido para ela.
+         $categoryEntityId = (int) ($category->fields['entities_id'] ?? 0);
+         if (!Session::haveAccessToEntity($categoryEntityId)
+            || !self::isGroupUsableForCategory($groupsId, $categoryEntityId)
+         ) {
+            $ma->itemDone($itemtype, (int) $key, MassiveAction::ACTION_NORIGHT);
+            continue;
+         }
+
+         if ($entity->updateCategoryGroup($itilcategoriesId, $groupsId)) {
             $ma->itemDone($itemtype, (int) $key, MassiveAction::ACTION_OK);
          } else {
             $ma->itemDone($itemtype, (int) $key, MassiveAction::ACTION_KO);
