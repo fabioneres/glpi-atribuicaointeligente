@@ -18,10 +18,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    public const RIGHT_CONFIG = 'plugin_atribuicaointeligente';
 
    public static $rightname = self::RIGHT_CONFIG;
-   protected static $entityConfigSchemaChecked = false;
-   protected static $decisionLogSchemaChecked = false;
-   protected static $distributionLogSchemaChecked = false;
-   protected static $configSchemaChecked = false;
    protected static $entityEnabledCache = [];
 
    public static function getTable($classname = null) {
@@ -324,12 +320,22 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       return (bool) $DB->insert(self::getTable(), ['id' => self::CONFIG_ID]);
    }
 
+   /**
+    * Autoriza gravar, editar ou excluir um registro da entidade informada.
+    *
+    * Nao usar a flag recursiva de Session::haveAccessToEntity(). Ela responde
+    * "este item recursivo e visivel aqui?" e retorna verdadeiro para qualquer
+    * entidade ancestral das entidades ativas, inclusive a raiz. Como registro
+    * com entities_id = 0 vale para todas as entidades, a flag recursiva
+    * permitiria que um perfil restrito a uma subentidade gravasse em escopo
+    * global ou alterasse registros de outras entidades.
+    */
    public static function canUseEntity(int $entities_id): bool {
       if ($entities_id < 0) {
          return false;
       }
 
-      return Session::haveAccessToEntity($entities_id, true);
+      return Session::haveAccessToEntity($entities_id);
    }
 
    public static function getEntityRestrictCriteria(string $field = 'entities_id', bool $includeGlobal = true): array {
@@ -347,12 +353,16 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       ];
    }
 
-   public static function ensureEntityConfigSchema(): void {
+   /**
+    * Cria e ajusta o schema da configuracao por entidade.
+    *
+    * Contem DDL e por isso so pode ser chamado na instalacao ou atualizacao do
+    * plugin. DDL provoca COMMIT implicito no MySQL/MariaDB: executado em
+    * runtime, dentro de uma transacao do core, confirmaria trabalho parcial de
+    * uma operacao de chamado, alem de travar a tabela a cada requisicao.
+    */
+   public static function installEntityConfigSchema(): void {
       global $DB;
-
-      if (self::$entityConfigSchemaChecked) {
-         return;
-      }
 
       $table = self::getEntityConfigTable();
       $created = false;
@@ -378,8 +388,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       if ($created || self::isEntityConfigTableEmpty()) {
          self::seedExistingEntityConfigs();
       }
-
-      self::$entityConfigSchemaChecked = true;
    }
 
    protected static function isEntityConfigTableEmpty(): bool {
@@ -414,8 +422,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
    public static function getEntityConfigRows(): array {
       global $DB;
-
-      self::ensureEntityConfigSchema();
 
       $table = self::getEntityConfigTable();
       if (!$DB->tableExists($table) || !$DB->tableExists('glpi_entities')) {
@@ -466,8 +472,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    public static function saveEnabledEntities(array $enabledEntities): void {
       global $DB;
 
-      self::ensureEntityConfigSchema();
-
       $table = self::getEntityConfigTable();
       if (!$DB->tableExists($table)) {
          return;
@@ -491,8 +495,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
    public static function setAllManageableEntitiesActive(bool $isActive): void {
       global $DB;
-
-      self::ensureEntityConfigSchema();
 
       $table = self::getEntityConfigTable();
       if (!$DB->tableExists($table)) {
@@ -524,8 +526,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
          return self::$entityEnabledCache[$entitiesId];
       }
 
-      self::ensureEntityConfigSchema();
-
       $table = self::getEntityConfigTable();
       if (!$DB->tableExists($table)) {
          return false;
@@ -543,12 +543,11 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       return self::$entityEnabledCache[$entitiesId];
    }
 
-   public static function ensureDecisionLogSchema(): void {
+   /**
+    * Ajusta o schema do log de decisoes. Somente instalacao/atualizacao (DDL).
+    */
+   public static function installDecisionLogSchema(): void {
       global $DB;
-
-      if (self::$decisionLogSchemaChecked) {
-         return;
-      }
 
       $table = self::getDecisionLogsTable();
       if (!$DB->tableExists($table)) {
@@ -559,16 +558,13 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       if (!$index || $index->num_rows === 0) {
          $DB->doQuery("ALTER TABLE `{$table}` ADD KEY `idx_entity_date` (`entities_id`, `date_creation`)");
       }
-
-      self::$decisionLogSchemaChecked = true;
    }
 
-   public static function ensureDistributionLogSchema(): void {
+   /**
+    * Cria e indexa o log de distribuicoes. Somente instalacao/atualizacao (DDL).
+    */
+   public static function installDistributionLogSchema(): void {
       global $DB;
-
-      if (self::$distributionLogSchemaChecked) {
-         return;
-      }
 
       $table = self::getDistributionLogsTable();
       if (!$DB->tableExists($table)) {
@@ -613,8 +609,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
             $DB->doQuery("ALTER TABLE `{$table}` ADD KEY `{$name}` ({$columns})");
          }
       }
-
-      self::$distributionLogSchemaChecked = true;
    }
 
    public static function getDefaultConfig(): array {
@@ -628,12 +622,11 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       ];
    }
 
-   public static function ensureConfigSchema(): void {
+   /**
+    * Adiciona colunas de configuracao ausentes. Somente instalacao/atualizacao (DDL).
+    */
+   public static function installConfigSchema(): void {
       global $DB;
-
-      if (self::$configSchemaChecked) {
-         return;
-      }
 
       $table = self::getConfigTable();
       if (!$DB->tableExists($table)) {
@@ -649,8 +642,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       if (!$result || $result->num_rows === 0) {
          $DB->doQuery("ALTER TABLE `{$table}` ADD `assign_on_update` tinyint NOT NULL DEFAULT 0 AFTER `use_entity_calendar`");
       }
-
-      self::$configSchemaChecked = true;
    }
 
    public static function ensureDefaultConfig(): void {
@@ -659,7 +650,6 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       if (!$DB->tableExists(self::getConfigTable())) {
          return;
       }
-      self::ensureConfigSchema();
 
       $iterator = $DB->request([
          'FROM'  => self::getConfigTable(),

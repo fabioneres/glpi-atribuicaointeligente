@@ -4,15 +4,30 @@
   <img src="atribuicaointeligente.png" alt="Atribuicao Inteligente" width="180">
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/GLPI-10.0.x%20apenas-blue" alt="Compatível apenas com GLPI 10.0.x">
+  <img src="https://img.shields.io/badge/vers%C3%A3o-1.3.2-green" alt="Versão 1.3.2">
+  <img src="https://img.shields.io/badge/licen%C3%A7a-GPLv3%2B-lightgrey" alt="GPLv3+">
+</p>
+
 Plugin GLPI para atribuição automática de chamados a técnicos por categoria/grupo, com suporte a indisponibilidade e escala de atendimento de técnicos.
+
+> ### ⚠️ Compatibilidade: somente GLPI 10.0.x
+>
+> Esta versão funciona **exclusivamente** em **GLPI 10.0.0 a 10.0.99**.
+>
+> O plugin declara esse limite em `setup.php` e o GLPI **recusa a instalação**
+> fora dessa faixa. **Não instale em GLPI 11** — a versão para GLPI 11 é
+> mantida em linha separada e ainda não foi publicada.
 
 ## Base
 
-- GLPI 10.0.x, com foco em GLPI 10.0.25.
+- **GLPI 10.0.x apenas** (testado em GLPI 10.0.25). Não compatível com GLPI 11.
+- PHP 7.4+.
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
-- Versão atual: **1.3.1**.
+- Versão atual: **1.3.2**.
 
 ## Referências
 
@@ -86,4 +101,31 @@ Consulte tambem:
 
 ## Observação sobre migração
 
-Ao instalar, o plugin tenta copiar configurações e categorias do SmartAssign/NexTool se as tabelas originais existirem. Nenhuma tabela nativa do GLPI é alterada.
+Ao instalar, o plugin tenta copiar configurações e categorias do SmartAssign/NexTool se as tabelas originais existirem.
+
+## Escrita em tabelas nativas
+
+O plugin usa tabelas próprias para sua configuração e seus registros. Há duas
+exceções, ambas intencionais e restritas:
+
+- a ação em massa **Alterar grupo responsável**, na aba Categorias, grava
+  `groups_id` em `glpi_itilcategories`. A partir da 1.3.2 ela exige acesso
+  direto à entidade da categoria e um grupo válido para essa entidade;
+- a atribuição automática cria atores do chamado (`glpi_tickets_users` e
+  `glpi_groups_tickets`) pelas APIs do GLPI e muda o status de `Novo` para
+  `Atribuído`, como faria uma atribuição manual.
+
+## Atualização para a 1.3.2
+
+A 1.3.2 é uma release de segurança. Dois ajustes apertam permissões e mudam
+comportamento visível para perfis com o direito do plugin **restrito a uma
+subentidade**:
+
+1. Não é mais possível criar, editar ou excluir indisponibilidade e escala com
+   entidade **Todas / global**, nem de entidade ancestral. Esses registros
+   continuam visíveis na listagem, mas sem botão de edição.
+2. A aba Categorias passa a listar apenas regras das entidades visíveis, e a
+   ação em massa exige acesso direto à entidade da categoria.
+
+Quem administra a partir da entidade raiz não é afetado. O detalhamento está em
+[docs/HISTORICO.md](docs/HISTORICO.md).

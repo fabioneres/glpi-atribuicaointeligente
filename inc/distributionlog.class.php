@@ -81,7 +81,6 @@ class PluginAtribuicaointeligenteDistributionLog extends CommonDBTM {
    public static function addLog(array $payload): bool {
       global $DB;
 
-      PluginAtribuicaointeligenteConfig::ensureDistributionLogSchema();
       $table = self::getTable();
       if (!$DB->tableExists($table)) {
          return false;
@@ -237,8 +236,8 @@ class PluginAtribuicaointeligenteDistributionLog extends CommonDBTM {
 
       $table = self::getTable();
       $ticketsId = (int) $input['tickets_id'];
-      $action = addslashes((string) $input['action_type']);
-      $source = addslashes((string) $input['source']);
+      $action = $DB->quoteValue((string) $input['action_type']);
+      $source = $DB->quoteValue((string) $input['source']);
       $actorId = (int) $input['users_id_actor'];
       $userToSql = self::nullableCompareSql('users_id_to', $input['users_id_to']);
       $groupToSql = self::nullableCompareSql('groups_id_to', $input['groups_id_to']);
@@ -248,8 +247,8 @@ class PluginAtribuicaointeligenteDistributionLog extends CommonDBTM {
          "SELECT `id`
           FROM `{$table}`
           WHERE `tickets_id` = {$ticketsId}
-            AND `action_type` = '{$action}'
-            AND `source` = '{$source}'
+            AND `action_type` = {$action}
+            AND `source` = {$source}
             AND `users_id_actor` = {$actorId}
             AND {$userToSql}
             AND {$groupToSql}

@@ -261,6 +261,14 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
       return (new DateTimeImmutable((string) $value))->format('Y-m-d');
    }
 
+   /**
+    * Monta o motivo exibido no log de decisao.
+    *
+    * Nao incluir o campo comment. Ele guarda a justificativa da ausencia, que
+    * pode conter dado pessoal (licenca medica, por exemplo), e o log de decisao
+    * fica visivel para todo perfil com leitura do plugin. Tipo e periodo bastam
+    * para auditar a distribuicao.
+    */
    protected static function formatUnavailabilityReason(array $row): string {
       $type = PluginAtribuicaointeligenteTechnicianUnavailability::getTypeLabel((string) ($row['type'] ?? ''));
       $parts = [$type];
@@ -278,10 +286,6 @@ class PluginAtribuicaointeligenteAvailabilityChecker {
             $period .= ($period !== '' ? ' ate ' : '') . (string) $row['date_end'];
          }
          $parts[] = $period;
-      }
-
-      if (!empty($row['comment'])) {
-         $parts[] = (string) $row['comment'];
       }
 
       return implode(' | ', array_filter($parts));
