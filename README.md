@@ -59,16 +59,6 @@ O plugin cria o direito `plugin_atribuicaointeligente` em **Administração > Pe
 
 ## Recursos
 
-Consulte tambem:
-
-- [ROADMAP.md](ROADMAP.md) para evolucoes planejadas;
-- [docs/README.md](docs/README.md) para o indice da documentacao;
-- [docs/HISTORICO.md](docs/HISTORICO.md) para o historico resumido;
-- [docs/RELATORIO_TECNICO.md](docs/RELATORIO_TECNICO.md) para o relatorio tecnico consolidado;
-- [../../../docs/licoes-aprendidas/README.md](../../../docs/licoes-aprendidas/README.md) para licoes aprendidas globais do workspace;
-- [docs/ANTIPADROES.md](docs/ANTIPADROES.md) para antipadroes observados e evitados;
-- [docs/CHECKLIST_DOCUMENTACAO_GLPI10.md](docs/CHECKLIST_DOCUMENTACAO_GLPI10.md) para a conformidade documental com a skill GLPI 10.
-
 - Atribuição automática por balanceamento.
 - Atribuição automática por rodízio.
 - Opção para atribuir também o grupo encarregado da categoria.
@@ -127,5 +117,4 @@ subentidade**:
 2. A aba Categorias passa a listar apenas regras das entidades visíveis, e a
    ação em massa exige acesso direto à entidade da categoria.
 
-Quem administra a partir da entidade raiz não é afetado. O detalhamento está em
-[docs/HISTORICO.md](docs/HISTORICO.md).
+Quem administra a partir da entidade raiz não é afetado.
