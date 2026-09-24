@@ -1,7 +1,5 @@
 # Atribuição Inteligente
 
-**Equipe Responsável: SUA UNIFESP**
-
 <p align="center">
   <img src="atribuicaointeligente.png" alt="Logo do plugin Atribuição Inteligente" width="180">
 </p>
@@ -136,4 +134,5 @@ exceções, ambas intencionais e restritas:
 
 - Dúvidas, problemas e sugestões: [GitHub Issues](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
 - Autor: Fabio Neres
+- Equipe Responsável: SUA UNIFESP
 - Licença: [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.html)
