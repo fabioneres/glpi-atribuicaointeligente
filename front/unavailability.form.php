@@ -47,31 +47,21 @@ if (!in_array($returnTab, $allowedReturnTabs, true)) {
 $redirectTabUrl = PluginAtribuicaointeligenteConfig::getFormURL(true)
    . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($returnTab);
 
-Toolbox::logInFile('plugin_atribuicaointeligente', 'FORM indisponibilidade acessado: ' . json_encode([
-   'method'              => $_SERVER['REQUEST_METHOD'] ?? '',
-   'uri'                 => $_SERVER['REQUEST_URI'] ?? '',
-   'user_id'             => Session::getLoginUserID(),
-   'profile_id'          => $_SESSION['glpiactiveprofile']['id'] ?? null,
-   'plugin_right_value'  => $_SESSION['glpiactiveprofile'][PluginAtribuicaointeligenteConfig::RIGHT_CONFIG] ?? null,
-   'can_create'          => $canCreate ? 1 : 0,
-   'can_update'          => $canUpdate ? 1 : 0,
-   'can_delete'          => $canDelete ? 1 : 0,
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL);
-
+// Acesso negado ja e registrado pelo core em Html::displayRightError(), no log
+// access-errors, com usuario, URL e rastreamento. Ate a 1.3.2 este arquivo
+// tambem gravava cada abertura do formulario com URI, perfil e valor do direito,
+// o que era ruido sem valor de auditoria.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    if ($id > 0 && !$canUpdate) {
-      Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao formulario de edicao de indisponibilidade.' . PHP_EOL);
       Html::displayRightError();
    }
 
    if ($id <= 0 && !$canCreate) {
-      Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao formulario de criacao de indisponibilidade.' . PHP_EOL);
       Html::displayRightError();
    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$canCreate && !$canUpdate && !$canDelete) {
-   Toolbox::logInFile('plugin_atribuicaointeligente', 'ACESSO NEGADO ao POST de indisponibilidade.' . PHP_EOL);
    Html::displayRightError();
 }
 
@@ -231,21 +221,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    } else {
       PluginAtribuicaointeligenteConfig::assertCanCreateUnavailability();
    }
-
-   Toolbox::logInFile('plugin_atribuicaointeligente', 'POST indisponibilidade recebido: ' . json_encode([
-      'id'          => $id,
-      'users_id'    => $input['users_id'],
-      'entities_id' => $input['entities_id'],
-      'type'        => $input['type'],
-      'date_start'  => $input['date_start'],
-      'date_end'    => $input['date_end'],
-      'weekday'     => $input['weekday'],
-      'is_active'   => $input['is_active'],
-      'profile_id'  => $_SESSION['glpiactiveprofile']['id'] ?? null,
-      'can_create'  => $canCreate ? 1 : 0,
-      'can_update'  => $canUpdate ? 1 : 0,
-      'can_delete'  => $canDelete ? 1 : 0,
-   ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 
    $errors = [];
    if ($input['users_id'] <= 0) {

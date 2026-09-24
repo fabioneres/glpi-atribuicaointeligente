@@ -19,11 +19,30 @@ class PluginAtribuicaointeligenteTicketHookHandler {
    protected $assignments;
    protected static $assignmentInProgress = false;
    protected static $ticketSnapshots = [];
+   protected static $userEntitiesCache = [];
 
    public function __construct() {
       global $DB;
       $this->DB = $DB;
       $this->assignments = new PluginAtribuicaointeligenteAssignmentsEntity();
+   }
+
+   /**
+    * O tecnico precisa ter acesso a entidade do chamado, por perfil direto nela
+    * ou recursivo numa entidade acima, com a semantica do proprio GLPI
+    * (Profile_User::getUserEntities). Sem isso ele recebia o chamado, e a
+    * notificacao dele, sem conseguir abri-lo.
+    */
+   protected static function userHasAccessToEntity(int $usersId, int $entitiesId): bool {
+      if (!array_key_exists($usersId, self::$userEntitiesCache)) {
+         self::$userEntitiesCache[$usersId] = array_map('intval', Profile_User::getUserEntities($usersId, true));
+      }
+
+      return in_array($entitiesId, self::$userEntitiesCache[$usersId], true);
+   }
+
+   protected static function noEntityAccessReason(): string {
+      return __('Sem acesso à entidade do chamado', 'atribuicaointeligente');
    }
 
    public static function preItemAdd(CommonDBTM $item) {
@@ -271,6 +290,14 @@ class PluginAtribuicaointeligenteTicketHookHandler {
             continue;
          }
 
+         if (!self::userHasAccessToEntity($userId, $entitiesId)) {
+            $ignored[] = [
+               'users_id' => $userId,
+               'reason'   => self::noEntityAccessReason(),
+            ];
+            continue;
+         }
+
          $reason = PluginAtribuicaointeligenteAvailabilityChecker::getUnavailableReason($userId, $entitiesId);
          if ($reason === null) {
             return [$userId, $ignored];
@@ -305,6 +332,17 @@ class PluginAtribuicaointeligenteTicketHookHandler {
          $index = ($startIndex + $offset) % $count;
          $userId = (int) ($members[$index]['UserId'] ?? 0);
          if ($userId <= 0) {
+            continue;
+         }
+
+         // Pula em vez de tirar da consulta: a posicao na lista e o ponteiro do
+         // rodizio. Uma lista que muda de tamanho conforme a entidade do chamado
+         // faria o ponteiro apontar para outra pessoa.
+         if (!self::userHasAccessToEntity($userId, $entitiesId)) {
+            $ignored[] = [
+               'users_id' => $userId,
+               'reason'   => self::noEntityAccessReason(),
+            ];
             continue;
          }
 

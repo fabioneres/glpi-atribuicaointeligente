@@ -122,6 +122,23 @@ if ((int) substr((string) $forcetab, -1) === 5) {
    }
 }
 
+// Aba Logs: o conteudo da aba e carregado por ajax/common.tabs.php, que nao
+// recebe os parametros desta pagina. Sem guardar aqui, antes de display(), o
+// link "pagina 2" recarregava a pagina com start=20 e a aba voltava sempre a
+// primeira pagina. Mesmo padrao ja usado para os filtros da aba Distribuicoes.
+if ((int) substr((string) $forcetab, -1) === 6) {
+   $logsStateKey = 'plugin_atribuicaointeligente_logs';
+   $logsScope = (string) ($_GET['logs_scope'] ?? ($_SESSION[$logsStateKey]['scope'] ?? 'acting'));
+   if (!in_array($logsScope, ['acting', 'all'], true)) {
+      $logsScope = 'acting';
+   }
+
+   $_SESSION[$logsStateKey] = [
+      'scope' => $logsScope,
+      'start' => max(0, (int) ($_GET['start'] ?? 0)),
+   ];
+}
+
 $item->display([
    'id'       => $id,
    'target'   => PluginAtribuicaointeligenteConfig::getFormURL(false),

@@ -189,6 +189,70 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_period')) {
    }
 }
 
+if (!function_exists('plugin_atribuicaointeligente_distribution_period_labels')) {
+   /**
+    * Rotulos legiveis para o eixo da Evolucao no periodo e anos cobertos.
+    *
+    * Mes vira abreviatura ("ago") e dia vira "dd/mm"; o ano sai uma vez, no
+    * cabecalho do bloco. Quando o periodo atravessa a virada do ano, a primeira
+    * coluna de cada ano leva o ano junto ("jan 2026"), para nao ficar ambiguo.
+    * Na granularidade anual o proprio rotulo ja e o ano.
+    *
+    * @return array{labels: array<string, string>, years: array<int, string>}
+    */
+   function plugin_atribuicaointeligente_distribution_period_labels(array $rows, string $granularity): array {
+      $months = [
+         1  => __('jan', 'atribuicaointeligente'),
+         2  => __('fev', 'atribuicaointeligente'),
+         3  => __('mar', 'atribuicaointeligente'),
+         4  => __('abr', 'atribuicaointeligente'),
+         5  => __('mai', 'atribuicaointeligente'),
+         6  => __('jun', 'atribuicaointeligente'),
+         7  => __('jul', 'atribuicaointeligente'),
+         8  => __('ago', 'atribuicaointeligente'),
+         9  => __('set', 'atribuicaointeligente'),
+         10 => __('out', 'atribuicaointeligente'),
+         11 => __('nov', 'atribuicaointeligente'),
+         12 => __('dez', 'atribuicaointeligente'),
+      ];
+
+      $years = [];
+      foreach ($rows as $row) {
+         $year = substr((string) ($row['distribution_period'] ?? ''), 0, 4);
+         if (preg_match('/^\d{4}$/', $year)) {
+            $years[$year] = $year;
+         }
+      }
+      ksort($years);
+      $multiYear = count($years) > 1;
+
+      $labels = [];
+      $previousYear = null;
+      foreach ($rows as $row) {
+         $period = (string) ($row['distribution_period'] ?? '');
+         $label = $period;
+         $year = substr($period, 0, 4);
+
+         if ($granularity === 'month' && preg_match('/^\d{4}-(\d{2})$/', $period, $match)) {
+            $label = $months[(int) $match[1]] ?? $period;
+         } elseif ($granularity === 'day' && preg_match('/^\d{4}-(\d{2})-(\d{2})$/', $period, $match)) {
+            $label = $match[2] . '/' . $match[1];
+         }
+
+         if ($granularity !== 'year' && $multiYear && $year !== $previousYear) {
+            $label .= ' ' . $year;
+         }
+         $previousYear = $year;
+         $labels[$period] = $label;
+      }
+
+      return [
+         'labels' => $labels,
+         'years'  => array_values($years),
+      ];
+   }
+}
+
 if (!function_exists('plugin_atribuicaointeligente_distribution_has_request_filters')) {
    function plugin_atribuicaointeligente_distribution_has_request_filters(): bool {
       if (isset($_GET['distribution_filter'])) {
@@ -283,14 +347,21 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_session_entities
    }
 }
 
-if (!function_exists('plugin_atribuicaointeligente_distribution_effective_entity')) {
-   function plugin_atribuicaointeligente_distribution_effective_entity(array $filters) {
+if (!function_exists('plugin_atribuicaointeligente_distribution_scope_entities')) {
+   /**
+    * Entidades que delimitam quem pode aparecer como pessoa no relatorio,
+    * seja distribuidor ou tecnico.
+    *
+    * Com filtro, e a entidade filtrada. Sem filtro ("Todas"), sao todas as
+    * entidades ativas da sessao. Ate a 1.3.2, "Todas" com mais de uma entidade na
+    * sessao desligava o filtro de pessoa e qualquer usuario aparecia.
+    */
+   function plugin_atribuicaointeligente_distribution_scope_entities(array $filters): array {
       if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
-         return (int) $filters['entities_id'];
+         return [(int) $filters['entities_id']];
       }
 
-      $entities = plugin_atribuicaointeligente_distribution_session_entities();
-      return count($entities) === 1 ? (int) $entities[0] : null;
+      return plugin_atribuicaointeligente_distribution_session_entities();
    }
 }
 
@@ -298,8 +369,10 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_entity_dropdown'
    function plugin_atribuicaointeligente_distribution_entity_dropdown(string $name, $value): void {
       global $DB;
 
-      echo '<select class="form-select" name="' . plugin_atribuicaointeligente_distribution_escape($name) . '">';
-      echo '<option value="">' . plugin_atribuicaointeligente_distribution_escape(__('Todas', 'atribuicaointeligente')) . '</option>';
+      // "Todas" usa chave string vazia, nunca 0: a entidade raiz tem id 0 e as
+      // duas opcoes nao podem se confundir. Dropdown::showFromArray compara com
+      // strcmp, entao '' e '0' permanecem distintos.
+      $options = ['' => __('Todas', 'atribuicaointeligente')];
 
       $entities = plugin_atribuicaointeligente_distribution_session_entities();
       if ($DB->tableExists('glpi_entities') && !empty($entities)) {
@@ -314,13 +387,18 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_entity_dropdown'
             if ($entityName === '') {
                $entityName = (string) ($row['name'] ?? $entityId);
             }
-            $entityName = plugin_atribuicaointeligente_distribution_decode_label($entityName);
-            $selected = $value !== '' && (int) $value === $entityId ? ' selected' : '';
-            echo '<option value="' . $entityId . '"' . $selected . '>' . plugin_atribuicaointeligente_distribution_escape($entityName) . '</option>';
+            // O core escapa o rotulo; aqui ele entra decodificado para nao
+            // aparecer com entidade HTML dupla.
+            $options[$entityId] = plugin_atribuicaointeligente_distribution_decode_label($entityName);
          }
       }
 
-      echo '</select>';
+      // Componente nativo: traz a busca por digitacao que o select montado a
+      // mao nao tinha, com a mesma lista e os mesmos valores de antes.
+      Dropdown::showFromArray($name, $options, [
+         'value' => (string) $value,
+         'width' => '100%',
+      ]);
    }
 }
 
@@ -606,23 +684,55 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_chart_color_inpu
 }
 
 if (!function_exists('plugin_atribuicaointeligente_distribution_user_entity_condition')) {
+   /**
+    * Restringe a pessoa (distribuidor ou tecnico) as entidades de quem consulta.
+    *
+    * Regra definida com o usuario em 2026-09-24: so aparece quem tem perfil
+    * dentro das entidades ativas da sessao. Alem disso, esse perfil precisa dar
+    * acesso a entidade consultada, por vinculo direto ou por vinculo recursivo
+    * numa entidade acima dela, como o GLPI faz. Sem o criterio recursivo, filtrar
+    * uma entidade filha escondia o tecnico cujo perfil recursivo esta na mae.
+    */
    function plugin_atribuicaointeligente_distribution_user_entity_condition(string $userSql, array $filters, bool $allowSystem = false): string {
       $userSql = trim($userSql);
-      $entityId = plugin_atribuicaointeligente_distribution_effective_entity($filters);
-      if ($userSql === '' || $entityId === null) {
+      if ($userSql === '') {
          return '1 = 1';
       }
 
-      $entityId = (int) $entityId;
-      $userProfileCondition = "{$userSql} > 0
-         AND (
-            EXISTS (
+      $sessionEntities = plugin_atribuicaointeligente_distribution_session_entities();
+      $scopeEntities = plugin_atribuicaointeligente_distribution_scope_entities($filters);
+
+      if (empty($sessionEntities) || empty($scopeEntities)) {
+         $userProfileCondition = '1 = 0';
+      } else {
+         $sessionSql = implode(',', array_map('intval', $sessionEntities));
+         $scopeSql = implode(',', array_map('intval', $scopeEntities));
+
+         // Sem filtro de entidade o escopo e a propria sessao, e o vinculo
+         // recursivo ja esta coberto pela primeira condicao.
+         $recursiveSql = '';
+         if (plugin_atribuicaointeligente_distribution_has_filter($filters, 'entities_id')) {
+            $ancestors = [];
+            foreach ($scopeEntities as $scopeEntity) {
+               foreach (getAncestorsOf('glpi_entities', (int) $scopeEntity) as $ancestor) {
+                  $ancestors[] = (int) $ancestor;
+               }
+            }
+            $ancestors = array_values(array_unique($ancestors));
+            if (!empty($ancestors)) {
+               $recursiveSql = ' OR (pu.`is_recursive` = 1 AND pu.`entities_id` IN (' . implode(',', $ancestors) . '))';
+            }
+         }
+
+         $userProfileCondition = "{$userSql} > 0
+            AND EXISTS (
                SELECT 1
                FROM `glpi_profiles_users` pu
                WHERE pu.`users_id` = {$userSql}
-                 AND pu.`entities_id` = {$entityId}
-            )
-         )";
+                 AND pu.`entities_id` IN ({$sessionSql})
+                 AND (pu.`entities_id` IN ({$scopeSql}){$recursiveSql})
+            )";
+      }
 
       if ($allowSystem) {
          return "({$userSql} = 0 OR ({$userProfileCondition}))";
@@ -1328,6 +1438,35 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
       justify-items: center;
       text-align: center;
    }
+   /* Colunas verticais: uma area de plotagem unica, com linha de base comum e
+      rotulo abaixo da barra, como eixo. Ate a 1.3.2 cada coluna herdava o
+      cartao de .ai-distribution-widget-item e o grafico se partia em caixas
+      separadas, com a barra baixa demais para comparar valores. */
+   .ai-distribution-widget-bar_vertical {
+      column-gap: 0;
+   }
+   .ai-distribution-widget-bar_vertical .ai-distribution-widget-item {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0;
+      min-height: 0;
+      padding: 0;
+   }
+   .ai-distribution-widget-bar_vertical .ai-distribution-widget-label {
+      align-self: stretch;
+      border-top: 1px solid var(--tblr-border-color, #dadcde);
+      font-weight: 500;
+      padding-top: 0.35rem;
+   }
+   .ai-distribution-widget-bar_vertical .ai-distribution-chart-vertical {
+      align-items: center;
+      height: 9rem;
+      justify-content: flex-end;
+      padding-bottom: 0.35rem;
+   }
    .ai-distribution-widget-summary_number {
       grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
    }
@@ -1791,10 +1930,26 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
          </div>
       </div>
 
+      <?php
+      $evolutionPeriods = plugin_atribuicaointeligente_distribution_period_labels($dailyRows, (string) $filters['evolution_period']);
+      $evolutionLabel = static function (array $row) use ($evolutionPeriods): string {
+         $period = (string) ($row['distribution_period'] ?? '');
+         return (string) ($evolutionPeriods['labels'][$period] ?? $period);
+      };
+      $evolutionYears = '';
+      if ($filters['evolution_period'] !== 'year' && !empty($evolutionPeriods['years'])) {
+         $firstYear = reset($evolutionPeriods['years']);
+         $lastYear = end($evolutionPeriods['years']);
+         $evolutionYears = $firstYear === $lastYear ? $firstYear : $firstYear . ' – ' . $lastYear;
+      }
+      ?>
       <div class="col-12 col-xl-6">
          <div class="card ai-distribution-card h-100">
             <div class="card-header">
                <h4 class="card-title mb-0"><?php echo __('Evolução no período', 'atribuicaointeligente'); ?></h4>
+               <?php if ($evolutionYears !== ''): ?>
+                  <span class="ms-auto text-muted fw-semibold"><?php echo plugin_atribuicaointeligente_distribution_escape($evolutionYears); ?></span>
+               <?php endif; ?>
             </div>
             <?php if ($filters['chart_daily'] === 'table'): ?>
                <div class="table-responsive">
@@ -1813,7 +1968,7 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
                         <?php endif; ?>
                         <?php foreach ($dailyRows as $row): ?>
                            <tr>
-                              <td><?php echo plugin_atribuicaointeligente_distribution_escape($row['distribution_period'] ?? ''); ?></td>
+                              <td><?php echo plugin_atribuicaointeligente_distribution_escape($evolutionLabel($row)); ?></td>
                               <td class="text-end"><?php echo (int) ($row['tickets_count'] ?? 0); ?></td>
                            </tr>
                         <?php endforeach; ?>
@@ -1828,7 +1983,7 @@ $formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : 
                   'tickets_count',
                   $filters['chart_daily'],
                   $filters,
-                  null,
+                  $evolutionLabel,
                   '3',
                   'chart_color_daily'
                );
