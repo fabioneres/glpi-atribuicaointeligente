@@ -130,6 +130,11 @@ exceções, ambas intencionais e restritas:
   `glpi_groups_tickets`) pelas APIs do GLPI e muda o status de `Novo` para
   `Atribuído`, como faria uma atribuição manual.
 
+## Documentação
+
+- [PRD do plugin](docs/PRD.md)
+- [Histórico de alterações](CHANGELOG.md)
+
 ## Suporte e contato
 
 - Dúvidas, problemas e sugestões: [GitHub Issues](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
