@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/GLPI-10.0.x%20apenas-blue" alt="Compatível apenas com GLPI 10.0.x">
-  <img src="https://img.shields.io/badge/vers%C3%A3o-1.3.2-green" alt="Versão 1.3.2">
+  <img src="https://img.shields.io/badge/vers%C3%A3o-1.3.3-green" alt="Versão 1.3.3">
   <img src="https://img.shields.io/badge/licen%C3%A7a-GPLv3%2B-lightgrey" alt="GPLv3+">
 </p>
 
@@ -27,7 +27,7 @@ Plugin GLPI para atribuição automática de chamados a técnicos por categoria/
 - Fork standalone baseado no módulo **SmartAssign** do plugin **NexTool Solutions**.
 - Autor deste fork: **Fabio Neres**.
 - Licença: GPLv3+.
-- Versão atual: **1.3.2**.
+- Versão atual: **1.3.3**. O histórico de versões está no [CHANGELOG.md](CHANGELOG.md).
 
 ## Referências
 
