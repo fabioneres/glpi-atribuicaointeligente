@@ -75,5 +75,7 @@ Quem administra a partir da entidade raiz não é afetado.
 
 ## Versões anteriores
 
-As notas das versões anteriores estão nas
-[releases do GitHub](https://github.com/fabioneres/glpi-atribuicaointeligente/releases).
+As versões 1.0.0 a 1.3.1 continuam disponíveis como tags do repositório, mas não são
+recomendadas: todas têm as falhas de segurança corrigidas na 1.3.2. Para instalar ou
+atualizar, use a
+[versão mais recente](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/latest).
