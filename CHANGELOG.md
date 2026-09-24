@@ -41,6 +41,8 @@ Esta linha de versões (1.x) é compatível **somente com GLPI 10.0.x**.
   mês de cada ano.
 - O formulário de indisponibilidade deixou de gravar no log do plugin cada abertura e cada
   envio. Tentativas de acesso negado continuam registradas pelo próprio GLPI.
+- README reorganizado como apresentação do plugin, com as funcionalidades agrupadas, o fluxo
+  de decisão da distribuição e os canais de suporte.
 
 ## [1.3.2] - 2026-09-17
 
