@@ -49,8 +49,8 @@ $redirectTabUrl = PluginAtribuicaointeligenteConfig::getFormURL(true)
 
 // Acesso negado ja e registrado pelo core em Html::displayRightError(), no log
 // access-errors, com usuario, URL e rastreamento. Ate a 1.3.2 este arquivo
-// tambem gravava cada abertura do formulario com URI, perfil e valor do direito
-// (SEC-010), o que era ruido sem valor de auditoria.
+// tambem gravava cada abertura do formulario com URI, perfil e valor do direito,
+// o que era ruido sem valor de auditoria.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    if ($id > 0 && !$canUpdate) {
       Html::displayRightError();

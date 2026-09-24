@@ -31,7 +31,7 @@ class PluginAtribuicaointeligenteTicketHookHandler {
     * O tecnico precisa ter acesso a entidade do chamado, por perfil direto nela
     * ou recursivo numa entidade acima, com a semantica do proprio GLPI
     * (Profile_User::getUserEntities). Sem isso ele recebia o chamado, e a
-    * notificacao dele, sem conseguir abri-lo. Achado SEC-009 da auditoria da 1.3.1.
+    * notificacao dele, sem conseguir abri-lo.
     */
    protected static function userHasAccessToEntity(int $usersId, int $entitiesId): bool {
       if (!array_key_exists($usersId, self::$userEntitiesCache)) {
