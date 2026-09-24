@@ -131,13 +131,6 @@ exceções, ambas intencionais e restritas:
   `glpi_groups_tickets`) pelas APIs do GLPI e muda o status de `Novo` para
   `Atribuído`, como faria uma atribuição manual.
 
-## Origem
-
-Fork independente do módulo **SmartAssign** do plugin **NexTool Solutions**, por
-Richard Loureiro / RPGMais ([repositório de referência](https://github.com/RPGMais/nextool)).
-Preserva a lógica de distribuição por balanceamento ou rodízio e acrescenta
-disponibilidade, escala, controle por entidade, auditoria e relatórios.
-
 ## Suporte e contato
 
 - Repositório: [github.com/fabioneres/glpi-atribuicaointeligente](https://github.com/fabioneres/glpi-atribuicaointeligente)
