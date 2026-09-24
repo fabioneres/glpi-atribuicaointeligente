@@ -1,11 +1,12 @@
 # Atribuição Inteligente
 
+**Equipe Responsável: SUA UNIFESP**
+
 <p align="center">
   <img src="atribuicaointeligente.png" alt="Logo do plugin Atribuição Inteligente" width="180">
 </p>
 
 [![Licenca](https://img.shields.io/badge/Licenca-GPLv3%2B-orange)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![Repositorio](https://img.shields.io/badge/Repositorio-P%C3%BAblico-blue)](https://github.com/fabioneres/glpi-atribuicaointeligente)
 [![Release](https://img.shields.io/badge/Release-1.3.3-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/latest)
 [![Contato](https://img.shields.io/badge/Contato-GitHub%20Issues-informational)](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
 [![GLPI](https://img.shields.io/badge/GLPI-10.0.x%20apenas-blue)](#compatibilidade)
@@ -133,7 +134,6 @@ exceções, ambas intencionais e restritas:
 
 ## Suporte e contato
 
-- Repositório: [github.com/fabioneres/glpi-atribuicaointeligente](https://github.com/fabioneres/glpi-atribuicaointeligente)
 - Dúvidas, problemas e sugestões: [GitHub Issues](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
 - Autor: Fabio Neres
 - Licença: [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.html)
