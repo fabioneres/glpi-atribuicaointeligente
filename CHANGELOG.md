@@ -5,7 +5,37 @@ Todas as mudanças relevantes do plugin Atribuição Inteligente.
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões
 seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-Esta linha de versões (1.x) é compatível **somente com GLPI 10.0.x**.
+As versões **2.x** são compatíveis **somente com GLPI 11.0.x** (branch `main`), e as
+versões **1.x**, **somente com GLPI 10.0.x** (branch `glpi10`).
+
+## [2.0.0] - 2026-09-30
+
+Primeira versão para GLPI 11. Tem as mesmas funcionalidades e correções da 1.3.3.
+
+### Atenção ao atualizar
+
+- Requer **GLPI 11.0.x** e **PHP 8.2** ou superior. O GLPI 10 continua na linha 1.x.
+- As tabelas do plugin são as mesmas da 1.3.3. Ao levar o GLPI de 10 para 11, instale a
+  2.0.0 no lugar da 1.3.3 e execute a atualização do plugin em **Configurar > Plugins**.
+  Faça backup do banco antes.
+
+### Alterado
+
+- Compatibilidade declarada: GLPI 11.0.0 a 11.0.99 e PHP 8.2 ou superior.
+- CSS e ícones passaram para a pasta `public/`, a única que o GLPI 11 serve ao navegador.
+  Os endereços continuam os mesmos.
+- Links e formulários das páginas do plugin passaram a usar o endereço explícito do plugin,
+  porque no GLPI 11 todas as requisições passam pelo `index.php`.
+- Chamadas que o GLPI 11 marcou como obsoletas foram substituídas pelas equivalentes atuais.
+
+### Corrigido
+
+- Na instalação e na atualização, o direito do plugin era gravado duas vezes. O GLPI 11 trata
+  isso como erro e interrompe a instalação.
+- As regras de categoria não carregavam no GLPI 11 por incompatibilidade de assinatura com o
+  core.
+- O aviso de técnico indisponível na atribuição manual passou a escapar o nome do calendário,
+  porque o GLPI 11 exibe esses avisos sem escape.
 
 ## [1.3.3] - 2026-09-24
 

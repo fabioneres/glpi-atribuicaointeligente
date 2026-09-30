@@ -5,21 +5,23 @@
 </p>
 
 [![Licenca](https://img.shields.io/badge/Licenca-GPLv3%2B-orange)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![Release](https://img.shields.io/badge/Release-1.3.3-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/latest)
+[![Release](https://img.shields.io/badge/Release-2.0.0-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/latest)
 [![Contato](https://img.shields.io/badge/Contato-GitHub%20Issues-informational)](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
-[![GLPI](https://img.shields.io/badge/GLPI-10.0.x%20apenas-blue)](#compatibilidade)
+[![GLPI](https://img.shields.io/badge/GLPI-11.0.x-blue)](#compatibilidade)
 
 Plugin GLPI que distribui chamados automaticamente entre os técnicos do grupo
 responsável pela categoria, por balanceamento de carga ou rodízio, respeitando
 férias, ausências, escala de atendimento e o calendário da entidade.
 
-> ### ⚠️ Compatibilidade: somente GLPI 10.0.x
+> ### ⚠️ Compatibilidade: esta linha (2.x) é somente para GLPI 11.0.x
 >
-> Esta versão funciona **exclusivamente** em **GLPI 10.0.0 a 10.0.99**.
+> As versões **2.x** funcionam **exclusivamente** em **GLPI 11.0.0 a 11.0.99**,
+> com PHP 8.2 ou superior. O plugin declara esse limite em `setup.php`, e o GLPI
+> **recusa a instalação** fora dessa faixa.
 >
-> O plugin declara esse limite em `setup.php` e o GLPI **recusa a instalação**
-> fora dessa faixa. **Não instale em GLPI 11** — a versão para GLPI 11 é
-> mantida em linha separada e ainda não foi publicada.
+> **Usa GLPI 10?** Instale a linha **1.x**: branch
+> [`glpi10`](https://github.com/fabioneres/glpi-atribuicaointeligente/tree/glpi10) e
+> release [1.3.3](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/tag/v1.3.3).
 
 ## Funcionalidades
 
@@ -88,8 +90,14 @@ Cada decisão, inclusive quando ninguém pôde ser escolhido, fica registrada na
 
 ## Compatibilidade
 
-- GLPI: **10.0.0 a 10.0.99** (validado em 10.0.25). Não compatível com GLPI 11.
-- PHP: 7.4 ou superior.
+| Linha | GLPI | PHP | Onde |
+|---|---|---|---|
+| **2.x** (esta) | **11.0.0 a 11.0.99** (validado em 11.0.9) | 8.2 ou superior | branch `main` |
+| 1.x | 10.0.0 a 10.0.99 (validado em 10.0.25) | 7.4 ou superior | branch [`glpi10`](https://github.com/fabioneres/glpi-atribuicaointeligente/tree/glpi10) |
+
+As duas linhas têm as mesmas funcionalidades e usam as mesmas tabelas. Ao levar o
+GLPI de 10 para 11, instale a 2.x no lugar da 1.x e execute a atualização do plugin
+em **Configurar > Plugins**.
 
 ## Instalação
 
