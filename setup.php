@@ -66,6 +66,23 @@ function plugin_init_atribuicaointeligente() {
    Plugin::registerClass('PluginAtribuicaointeligenteAssignmentDecisionLog');
    Plugin::registerClass('PluginAtribuicaointeligenteDistributionLog');
 
+   // As tabelas do plugin nao seguem o nome das classes, e o GLPI nao deduz a
+   // classe a partir da tabela. No GLPI 11 isso quebra a acao em massa
+   // "Modificar" com TypeError; o mapa explicito resolve para o core.
+   global $CFG_GLPI;
+   foreach ([
+      'PluginAtribuicaointeligenteCategoryAssignment',
+      'PluginAtribuicaointeligenteTechnicianUnavailability',
+      'PluginAtribuicaointeligenteTechnicianWorkSchedule',
+      'PluginAtribuicaointeligenteAssignmentDecisionLog',
+      'PluginAtribuicaointeligenteDistributionLog',
+      'PluginAtribuicaointeligenteConfig',
+   ] as $itemtype) {
+      $table = $itemtype::getTable();
+      $CFG_GLPI['glpiitemtypetables'][$table] = $itemtype;
+      $CFG_GLPI['glpitablesitemtype'][$itemtype] = $table;
+   }
+
    if (Session::getLoginUserID()) {
       PluginAtribuicaointeligenteProfile::syncCurrentProfileRight();
       $menuCacheKey = 'plugin_atribuicaointeligente_menu_url_fix';
