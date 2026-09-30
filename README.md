@@ -5,7 +5,7 @@
 </p>
 
 [![Licenca](https://img.shields.io/badge/Licenca-GPLv3%2B-orange)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![Release](https://img.shields.io/badge/Release-1.3.3-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/latest)
+[![Release](https://img.shields.io/badge/Release-1.3.3-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/tag/v1.3.3)
 [![Contato](https://img.shields.io/badge/Contato-GitHub%20Issues-informational)](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
 [![GLPI](https://img.shields.io/badge/GLPI-10.0.x%20apenas-blue)](#compatibilidade)
 
@@ -18,8 +18,10 @@ férias, ausências, escala de atendimento e o calendário da entidade.
 > Esta versão funciona **exclusivamente** em **GLPI 10.0.0 a 10.0.99**.
 >
 > O plugin declara esse limite em `setup.php` e o GLPI **recusa a instalação**
-> fora dessa faixa. **Não instale em GLPI 11** — a versão para GLPI 11 é
-> mantida em linha separada e ainda não foi publicada.
+> fora dessa faixa. **Não instale em GLPI 11.**
+>
+> **Usa GLPI 11?** Instale a linha **2.x**, no branch
+> [`main`](https://github.com/fabioneres/glpi-atribuicaointeligente/tree/main).
 
 ## Funcionalidades
 
