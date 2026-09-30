@@ -18,7 +18,7 @@ if (!function_exists('plugin_atribuicaointeligente_logs_url')) {
    function plugin_atribuicaointeligente_logs_url(bool $embedded, array $params): string {
       $target = $embedded
          ? PluginAtribuicaointeligenteConfig::getFormURL(true)
-         : $_SERVER['PHP_SELF'];
+         : PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/logs.php';
       if ($embedded) {
          $params = ['forcetab' => 'PluginAtribuicaointeligenteConfig$6'] + $params;
       }
@@ -35,7 +35,7 @@ if (!function_exists('plugin_atribuicaointeligente_logs_pager')) {
 
       $target = $embedded
          ? PluginAtribuicaointeligenteConfig::getFormURL(true)
-         : $_SERVER['PHP_SELF'];
+         : PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/logs.php';
       $parameters = $embedded
          ? http_build_query(['forcetab' => 'PluginAtribuicaointeligenteConfig$6', 'logs_scope' => $scope])
          : http_build_query(['logs_scope' => $scope]);
@@ -81,7 +81,7 @@ if ($DB->tableExists($table)) {
    }
 
    $countCriteria = [
-      'SELECT' => [new QueryExpression('COUNT(*) AS total')],
+      'SELECT' => [new \Glpi\DBAL\QueryExpression('COUNT(*) AS total')],
       'FROM'   => $table,
    ];
    if (!empty($where)) {
@@ -124,7 +124,7 @@ if ($DB->tableExists($table)) {
 if (!$embedded) {
    Html::header(
       PluginAtribuicaointeligenteAssignmentDecisionLog::getTypeName(Session::getPluralNumber()),
-      $_SERVER['PHP_SELF'],
+      PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/logs.php',
       'plugins',
       PluginAtribuicaointeligenteConfig::class
    );

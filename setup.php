@@ -17,13 +17,13 @@ if (!defined('GLPI_ROOT')) {
 }
 
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '1.3.3');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_VERSION', '2.0.0');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '10.0.0');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION', '11.0.0');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_MAX_GLPI_VERSION')) {
-   define('PLUGIN_ATRIBUICAOINTELIGENTE_MAX_GLPI_VERSION', '10.0.99');
+   define('PLUGIN_ATRIBUICAOINTELIGENTE_MAX_GLPI_VERSION', '11.0.99');
 }
 if (!defined('PLUGIN_ATRIBUICAOINTELIGENTE_DIR')) {
    define('PLUGIN_ATRIBUICAOINTELIGENTE_DIR', __DIR__);
@@ -140,6 +140,9 @@ function plugin_version_atribuicaointeligente() {
          'glpi' => [
             'min' => PLUGIN_ATRIBUICAOINTELIGENTE_MIN_GLPI_VERSION,
             'max' => PLUGIN_ATRIBUICAOINTELIGENTE_MAX_GLPI_VERSION,
+         ],
+         'php' => [
+            'min' => '8.2',
          ],
       ],
    ];

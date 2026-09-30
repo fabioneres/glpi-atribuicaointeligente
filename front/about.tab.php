@@ -24,7 +24,7 @@ if (!defined('GLPI_ROOT')) {
             <div class="flex-shrink-0 text-center">
                <?php
                echo Html::image(
-                  Plugin::getWebDir('atribuicaointeligente') . '/pics/icon.png',
+                  PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/pics/icon.png',
                   [
                      'alt'   => 'Logo Atribuicao Inteligente',
                      'style' => 'width:72px;height:72px;object-fit:contain;',
@@ -45,7 +45,7 @@ if (!defined('GLPI_ROOT')) {
                </p>
                <p>
                   <strong><?php echo __('Compatibilidade alvo:', 'atribuicaointeligente'); ?></strong>
-                  GLPI 10.0.25.
+                  GLPI 11.0.x.
                </p>
                <p class="text-muted mb-0">
                   <?php echo __('Usa tabelas proprias e nao altera o core nem tabelas nativas do GLPI.', 'atribuicaointeligente'); ?>

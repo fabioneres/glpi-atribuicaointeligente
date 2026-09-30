@@ -22,7 +22,7 @@ $embedded = !empty($_GET['embedded']);
 if (!$embedded) {
    Html::header(
       PluginAtribuicaointeligenteCategoryAssignment::getTypeName(Session::getPluralNumber()),
-      $_SERVER['PHP_SELF'],
+      PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/categories.php',
       'plugins',
       PluginAtribuicaointeligenteConfig::class
    );

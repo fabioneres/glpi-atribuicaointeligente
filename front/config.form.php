@@ -42,7 +42,7 @@ if (!$item->getFromDB($id)) {
 
 Html::header(
    PluginAtribuicaointeligenteConfig::getTypeName(1),
-   $_SERVER['PHP_SELF'],
+   PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/config.form.php',
    'plugins',
    PluginAtribuicaointeligenteConfig::class
 );

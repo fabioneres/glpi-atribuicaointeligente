@@ -31,7 +31,7 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
    }
 
    public static function getSearchURL($full = true) {
-      return Plugin::getWebDir('atribuicaointeligente') . '/front/categories.php';
+      return PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/categories.php';
    }
 
    /**
@@ -109,12 +109,12 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
          . ')';
    }
 
-   public function canViewItem() {
+   public function canViewItem(): bool {
       return parent::canViewItem()
          && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0));
    }
 
-   public function canUpdateItem() {
+   public function canUpdateItem(): bool {
       return parent::canUpdateItem()
          && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0), true);
    }

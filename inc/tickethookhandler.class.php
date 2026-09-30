@@ -107,7 +107,9 @@ class PluginAtribuicaointeligenteTicketHookHandler {
       Session::addMessageAfterRedirect(
          sprintf(
             __('Técnico indisponível para atribuição manual: %s', 'atribuicaointeligente'),
-            $reason
+            // No GLPI 11 os avisos sao exibidos sem escape; o motivo pode
+            // conter o nome do calendario.
+            htmlescape($reason)
          ),
          false,
          ERROR

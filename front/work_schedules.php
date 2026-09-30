@@ -22,7 +22,7 @@ $table = PluginAtribuicaointeligenteConfig::getWorkSchedulesTable();
 if (!$embedded) {
    Html::header(
       PluginAtribuicaointeligenteTechnicianWorkSchedule::getTypeName(Session::getPluralNumber()),
-      $_SERVER['PHP_SELF'],
+      PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/work_schedules.php',
       'plugins',
       PluginAtribuicaointeligenteConfig::class
    );

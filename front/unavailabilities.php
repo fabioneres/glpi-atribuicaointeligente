@@ -24,7 +24,7 @@ if (!function_exists('plugin_atribuicaointeligente_unavailability_tab_url')) {
    function plugin_atribuicaointeligente_unavailability_tab_url(bool $embedded, string $tab, array $extra = []): string {
       $target = $embedded
          ? PluginAtribuicaointeligenteConfig::getFormURL(true)
-         : $_SERVER['PHP_SELF'];
+         : PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailabilities.php';
 
       $params = array_merge(['availability_tab' => $tab], $extra);
       if ($embedded) {
@@ -45,7 +45,7 @@ if (!function_exists('plugin_atribuicaointeligente_unavailability_form_url')) {
          $params['id'] = $id;
       }
 
-      return Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php?' . http_build_query($params);
+      return PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailability.form.php?' . http_build_query($params);
    }
 }
 
@@ -165,7 +165,7 @@ $selectedVacationUser = max(0, (int) ($_GET['users_id'] ?? 0));
 if (!$embedded) {
    Html::header(
       PluginAtribuicaointeligenteTechnicianUnavailability::getTypeName(Session::getPluralNumber()),
-      $_SERVER['PHP_SELF'],
+      PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailabilities.php',
       'plugins',
       PluginAtribuicaointeligenteConfig::class
    );

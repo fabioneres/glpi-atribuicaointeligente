@@ -316,7 +316,7 @@ if (!function_exists('plugin_atribuicaointeligente_distribution_filter_url')) {
    function plugin_atribuicaointeligente_distribution_filter_url(bool $embedded, array $filters): string {
       $target = $embedded
          ? PluginAtribuicaointeligenteConfig::getFormURL(true)
-         : $_SERVER['PHP_SELF'];
+         : PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/distributions.php';
 
       if ($embedded) {
          $filters['forcetab'] = 'PluginAtribuicaointeligenteConfig$5';
@@ -1222,13 +1222,13 @@ $transferRate = $distinctTickets > 0 ? (int) round(($transferTickets / $distinct
 if (!$embedded) {
    Html::header(
       PluginAtribuicaointeligenteDistributionLog::getTypeName(Session::getPluralNumber()),
-      $_SERVER['PHP_SELF'],
+      PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/distributions.php',
       'plugins',
       PluginAtribuicaointeligenteConfig::class
    );
 }
 
-$formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : $_SERVER['PHP_SELF'];
+$formAction = $embedded ? PluginAtribuicaointeligenteConfig::getFormURL(true) : PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/distributions.php';
 ?>
 
 <style>

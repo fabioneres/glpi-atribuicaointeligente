@@ -13,7 +13,7 @@ if (!defined('GLPI_ROOT')) {
 PluginAtribuicaointeligenteConfig::assertCanUpdateConfig();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-   // O GLPI 10 ja valida tokens CSRF de POST em inc/includes.php.
+   // O kernel do GLPI 11 ja valida o token CSRF de todo POST (CheckCsrfListener).
    $entity = new PluginAtribuicaointeligenteAssignmentsEntity();
    $currentConfig = PluginAtribuicaointeligenteConfig::getConfigValues();
    $options = $currentConfig;

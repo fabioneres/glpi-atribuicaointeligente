@@ -13,7 +13,7 @@ if (!defined('GLPI_ROOT')) {
 $canEdit = PluginAtribuicaointeligenteConfig::canUpdateConfig();
 $config = PluginAtribuicaointeligenteConfig::getConfigValues();
 $entityRows = PluginAtribuicaointeligenteConfig::getEntityConfigRows();
-$action = Plugin::getWebDir('atribuicaointeligente') . '/front/config.save.php';
+$action = PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/config.save.php';
 ?>
 
 <div class="m-3" id="atribuicaointeligente-config-tab">

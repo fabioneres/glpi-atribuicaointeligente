@@ -264,7 +264,7 @@ class PluginAtribuicaointeligenteAssignmentsEntity extends CommonDBTM {
             'glpi_itilcategories.groups_id',
             'glpi_groups.completename AS group_name',
             "{$assignTable}.is_active",
-            new QueryExpression('COUNT(glpi_groups_users.users_id) AS num_group_members'),
+            new \Glpi\DBAL\QueryExpression('COUNT(glpi_groups_users.users_id) AS num_group_members'),
          ],
          'FROM' => $assignTable,
          'INNER JOIN' => [

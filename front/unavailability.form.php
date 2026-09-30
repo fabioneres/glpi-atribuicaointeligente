@@ -47,22 +47,22 @@ if (!in_array($returnTab, $allowedReturnTabs, true)) {
 $redirectTabUrl = PluginAtribuicaointeligenteConfig::getFormURL(true)
    . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($returnTab);
 
-// Acesso negado ja e registrado pelo core em Html::displayRightError(), no log
+// Acesso negado ja e registrado pelo core (AccessErrorListener), no log
 // access-errors, com usuario, URL e rastreamento. Ate a 1.3.2 este arquivo
 // tambem gravava cada abertura do formulario com URI, perfil e valor do direito,
 // o que era ruido sem valor de auditoria.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    if ($id > 0 && !$canUpdate) {
-      Html::displayRightError();
+      throw new \Glpi\Exception\Http\AccessDeniedHttpException();
    }
 
    if ($id <= 0 && !$canCreate) {
-      Html::displayRightError();
+      throw new \Glpi\Exception\Http\AccessDeniedHttpException();
    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$canCreate && !$canUpdate && !$canDelete) {
-   Html::displayRightError();
+   throw new \Glpi\Exception\Http\AccessDeniedHttpException();
 }
 
 if (!function_exists('plugin_atribuicaointeligente_normalize_datetime')) {
@@ -137,7 +137,7 @@ if (!function_exists('plugin_atribuicaointeligente_time_value')) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-   // O GLPI 10 ja valida tokens CSRF de POST em inc/includes.php.
+   // O kernel do GLPI 11 ja valida o token CSRF de todo POST (CheckCsrfListener).
    if (!$DB->tableExists($table)) {
       Session::addMessageAfterRedirect(
          __('Tabela de indisponibilidades não encontrada. Reinstale ou atualize o plugin.', 'atribuicaointeligente'),
@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($current['entities_id'] ?? 0))) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
 
       if (empty($_REQUEST['return_tab'])) {
@@ -281,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       foreach ($errors as $error) {
          Session::addMessageAfterRedirect($error, false, ERROR);
       }
-      $url = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php';
+      $url = PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailability.form.php';
       $params = ['return_tab' => $returnTab, 'type' => $type];
       if ($id > 0) {
          $params['id'] = $id;
@@ -316,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          false,
          ERROR
       );
-      $url = Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php';
+      $url = PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailability.form.php';
       $params = ['return_tab' => $returnTab, 'type' => $type];
       if ($id > 0) {
          $params['id'] = $id;
@@ -345,7 +345,7 @@ if ($id > 0) {
    }
 
    if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($item->fields['entities_id'] ?? 0))) {
-      Html::displayRightError();
+      throw new \Glpi\Exception\Http\AccessDeniedHttpException();
    }
 
    $fields = array_merge($fields, $item->fields);
@@ -359,14 +359,14 @@ if ($id > 0) {
 
 Html::header(
    PluginAtribuicaointeligenteTechnicianUnavailability::getTypeName(1),
-   $_SERVER['PHP_SELF'],
+   PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailability.form.php',
    'plugins',
    PluginAtribuicaointeligenteConfig::class
 );
 ?>
 
 <div class="m-3">
-   <form method="post" action="<?php echo htmlspecialchars(Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php', ENT_QUOTES, 'UTF-8'); ?>" class="card">
+   <form method="post" action="<?php echo htmlspecialchars(PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailability.form.php', ENT_QUOTES, 'UTF-8'); ?>" class="card">
       <div class="card-header">
          <h3 class="card-title">
             <i class="ti ti-user-off me-2"></i>

@@ -27,7 +27,7 @@ class PluginAtribuicaointeligenteTechnicianWorkSchedule extends CommonDBTM {
    }
 
    public static function getFormURL($full = true) {
-      return Plugin::getWebDir('atribuicaointeligente', $full) . '/front/work_schedule.form.php';
+      return PluginAtribuicaointeligenteConfig::getPluginWebDir($full) . '/front/work_schedule.form.php';
    }
 
    public static function getWeekdays(): array {

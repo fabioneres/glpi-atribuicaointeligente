@@ -27,7 +27,7 @@ class PluginAtribuicaointeligenteTechnicianUnavailability extends CommonDBTM {
    }
 
    public static function getFormURL($full = true) {
-      return Plugin::getWebDir('atribuicaointeligente') . '/front/unavailability.form.php';
+      return PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/unavailability.form.php';
    }
 
    public static function getTypes(): array {

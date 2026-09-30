@@ -39,16 +39,16 @@ $backUrl = PluginAtribuicaointeligenteConfig::getFormURL(true) . '?forcetab=Plug
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    if ($id > 0 && !$canUpdate) {
-      Html::displayRightError();
+      throw new \Glpi\Exception\Http\AccessDeniedHttpException();
    }
 
    if ($id <= 0 && !$canCreate) {
-      Html::displayRightError();
+      throw new \Glpi\Exception\Http\AccessDeniedHttpException();
    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$canCreate && !$canUpdate && !$canDelete) {
-   Html::displayRightError();
+   throw new \Glpi\Exception\Http\AccessDeniedHttpException();
 }
 
 if (!function_exists('plugin_atribuicaointeligente_schedule_date')) {
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($current['entities_id'] ?? 0))) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
@@ -226,7 +226,7 @@ if ($id > 0) {
    }
 
    if (!PluginAtribuicaointeligenteConfig::canUseEntity((int) ($item->fields['entities_id'] ?? 0))) {
-      Html::displayRightError();
+      throw new \Glpi\Exception\Http\AccessDeniedHttpException();
    }
 
    $fields = array_merge($fields, $item->fields);
@@ -236,7 +236,7 @@ $selectedWeekdays = PluginAtribuicaointeligenteTechnicianWorkSchedule::normalize
 
 Html::header(
    PluginAtribuicaointeligenteTechnicianWorkSchedule::getTypeName(1),
-   $_SERVER['PHP_SELF'],
+   PluginAtribuicaointeligenteConfig::getPluginWebDir() . '/front/work_schedule.form.php',
    'plugins',
    PluginAtribuicaointeligenteConfig::class
 );

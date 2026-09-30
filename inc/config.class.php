@@ -84,7 +84,18 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
    }
 
    public static function getFormURL($full = true) {
-      return Plugin::getWebDir('atribuicaointeligente', $full) . '/front/config.form.php';
+      return self::getPluginWebDir($full) . '/front/config.form.php';
+   }
+
+   /**
+    * Caminho web do plugin. No GLPI 11 todo recurso de plugin e servido em
+    * /plugins/<chave>, e Plugin::getWebDir() ficou obsoleto.
+    */
+   public static function getPluginWebDir(bool $full = true): string {
+      global $CFG_GLPI;
+
+      $path = '/plugins/atribuicaointeligente';
+      return $full ? rtrim((string) ($CFG_GLPI['root_doc'] ?? ''), '/') . $path : $path;
    }
 
    public function rawSearchOptions() {
@@ -207,55 +218,55 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
 
    public static function assertCanView(): void {
       if (!self::canView()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanManage(): void {
       if (!self::canManage()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanUpdateConfig(): void {
       if (!self::canUpdateConfig()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanCreateUnavailability(): void {
       if (!self::canCreateUnavailability()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanUpdateUnavailability(): void {
       if (!self::canUpdateUnavailability()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanDeleteUnavailability(): void {
       if (!self::canDeleteUnavailability()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanCreateWorkSchedule(): void {
       if (!self::canCreateWorkSchedule()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanUpdateWorkSchedule(): void {
       if (!self::canUpdateWorkSchedule()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
    public static function assertCanDeleteWorkSchedule(): void {
       if (!self::canDeleteWorkSchedule()) {
-         Html::displayRightError();
+         throw new \Glpi\Exception\Http\AccessDeniedHttpException();
       }
    }
 
@@ -264,7 +275,9 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       $migration->addRight(self::RIGHT_CONFIG, ALLSTANDARDRIGHT, [Config::$rightname => UPDATE]);
       $migration->executeMigration();
 
-      ProfileRight::addProfileRights([self::RIGHT_CONFIG]);
+      // Migration::addRight() ja insere o direito em todos os perfis; no GLPI 11
+      // addProfileRights() repetiria o insert e a instalacao falharia por chave duplicada.
+      ProfileRight::cleanAllPossibleRights();
       self::repairEmptyRightsForConfigAdmins();
    }
 
