@@ -8,15 +8,17 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 As versões **2.x** são compatíveis **somente com GLPI 11.0.x** (branch `main`), e as
 versões **1.x**, **somente com GLPI 10.0.x** (branch `glpi10`).
 
-## [2.0.0] - 2026-09-30
+## [2.0.0-rc.1] - 2026-09-30
 
-Primeira versão para GLPI 11. Tem as mesmas funcionalidades e correções da 1.3.3.
+Primeira versão para GLPI 11, publicada como **versão candidata**. Tem as mesmas
+funcionalidades e correções da 1.3.3. A 2.0.0 final sai depois da validação navegada das telas
+no GLPI 11. Validada em GLPI 11.0.9 e 11.0.10.
 
 ### Atenção ao atualizar
 
 - Requer **GLPI 11.0.x** e **PHP 8.2** ou superior. O GLPI 10 continua na linha 1.x.
 - As tabelas do plugin são as mesmas da 1.3.3. Ao levar o GLPI de 10 para 11, instale a
-  2.0.0 no lugar da 1.3.3 e execute a atualização do plugin em **Configurar > Plugins**.
+  2.x no lugar da 1.3.3 e execute a atualização do plugin em **Configurar > Plugins**.
   Faça backup do banco antes.
 
 ### Alterado
