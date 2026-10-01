@@ -195,7 +195,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          }
          Session::addMessageAfterRedirect(__('Escala adicionada.', 'atribuicaointeligente'), false, INFO);
       }
-      Html::redirect($backUrl);
    } catch (Throwable $e) {
       Toolbox::logInFile('plugin_atribuicaointeligente', 'Falha ao gravar escala de atendimento: ' . $e->getMessage() . PHP_EOL);
       Session::addMessageAfterRedirect(
@@ -205,6 +204,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       );
       Html::redirect($id > 0 ? PluginAtribuicaointeligenteTechnicianWorkSchedule::getFormURL(true) . '?id=' . $id : PluginAtribuicaointeligenteTechnicianWorkSchedule::getFormURL(true));
    }
+
+   // Fora do try: no GLPI 11, Html::redirect() lanca RedirectException, que o
+   // catch (Throwable) acima trataria como falha de gravacao.
+   Html::redirect($backUrl);
 }
 
 $fields = [

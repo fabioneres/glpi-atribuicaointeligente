@@ -8,6 +8,28 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 As versões **2.x** são compatíveis **somente com GLPI 11.0.x** (branch `main`), e as
 versões **1.x**, **somente com GLPI 10.0.x** (branch `glpi10`).
 
+## [Unreleased]
+
+### Segurança
+
+- Um perfil com o direito do plugin restrito a uma subentidade conseguia ligar ou desligar o
+  plugin na entidade raiz, pela aba Entidades, inclusive com "Habilitar todas" e "Desabilitar
+  todas". A aba agora lista e altera só as entidades ativas do usuário. O problema vinha da 1.x.
+- As ações em massa nativas "Atualizar" e "Excluir permanentemente" permitiam que um perfil
+  restrito alterasse ou excluísse a regra de uma categoria de entidade superior, à qual ele não
+  tem acesso direto. Essas ações agora seguem a mesma restrição de entidade da edição. O problema
+  vinha da 1.x.
+
+### Corrigido
+
+- Ao salvar uma indisponibilidade ou uma escala, nova ou editada, o registro era gravado, mas a
+  tela mostrava também "Erro ao gravar" e voltava ao formulário. Isso podia levar a cadastros
+  duplicados.
+- A ação em massa "Modificar" das regras de categoria parava com erro no GLPI 11.
+- A aba Sobre dizia que o plugin não altera tabelas nativas. Agora descreve as duas gravações
+  intencionais: o grupo encarregado da categoria e os atores e o status do chamado na
+  distribuição.
+
 ## [2.0.0-rc.1] - 2026-09-30
 
 Primeira versão para GLPI 11, publicada como **versão candidata**. Tem as mesmas

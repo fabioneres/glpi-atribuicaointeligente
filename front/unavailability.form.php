@@ -304,11 +304,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          Toolbox::logInFile('plugin_atribuicaointeligente', 'Indisponibilidade inserida com sucesso.' . PHP_EOL);
          Session::addMessageAfterRedirect(__('Indisponibilidade adicionada.', 'atribuicaointeligente'), false, INFO);
       }
-      $targetReturnTab = $typeReturnMap[$input['type']] ?? 'other';
-      Html::redirect(
-         PluginAtribuicaointeligenteConfig::getFormURL(true)
-         . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($targetReturnTab)
-      );
    } catch (Throwable $e) {
       Toolbox::logInFile('plugin_atribuicaointeligente', 'Falha ao gravar indisponibilidade: ' . $e->getMessage() . PHP_EOL);
       Session::addMessageAfterRedirect(
@@ -323,6 +318,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       Html::redirect($url . '?' . http_build_query($params));
    }
+
+   // Fora do try: no GLPI 11, Html::redirect() lanca RedirectException, que o
+   // catch (Throwable) acima trataria como falha de gravacao.
+   $targetReturnTab = $typeReturnMap[$input['type']] ?? 'other';
+   Html::redirect(
+      PluginAtribuicaointeligenteConfig::getFormURL(true)
+      . '?forcetab=PluginAtribuicaointeligenteConfig$3&availability_tab=' . rawurlencode($targetReturnTab)
+   );
 }
 
 $fields = [
