@@ -119,6 +119,26 @@ class PluginAtribuicaointeligenteCategoryAssignment extends CommonDBTM {
          && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0), true);
    }
 
+   /**
+    * As acoes em massa nativas "Atualizar" e "Excluir permanentemente" checam
+    * canEdit(), que aceita CREATE, UPDATE ou PURGE. Sem a mesma regra aqui, a
+    * restricao de canUpdateItem() seria contornada por essas acoes.
+    */
+   public function canCreateItem() {
+      return parent::canCreateItem()
+         && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0), true);
+   }
+
+   public function canDeleteItem() {
+      return parent::canDeleteItem()
+         && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0), true);
+   }
+
+   public function canPurgeItem() {
+      return parent::canPurgeItem()
+         && self::canAccessCategory((int) ($this->fields['itilcategories_id'] ?? 0), true);
+   }
+
    public function rawSearchOptions() {
       $tab = [];
 

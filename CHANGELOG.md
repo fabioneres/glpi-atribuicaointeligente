@@ -7,6 +7,23 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 Esta linha de versões (1.x) é compatível **somente com GLPI 10.0.x**.
 
+## [Unreleased]
+
+### Segurança
+
+- Um perfil com o direito do plugin restrito a uma subentidade conseguia ligar ou desligar o
+  plugin na entidade raiz, pela aba Entidades, inclusive com "Habilitar todas" e "Desabilitar
+  todas". A aba agora lista e altera só as entidades ativas do usuário.
+- As ações em massa nativas "Atualizar" e "Excluir permanentemente" permitiam que um perfil
+  restrito alterasse ou excluísse a regra de uma categoria de entidade superior, à qual ele não
+  tem acesso direto. Essas ações agora seguem a mesma restrição de entidade da edição.
+
+### Corrigido
+
+- A aba Sobre dizia que o plugin não altera tabelas nativas. Agora descreve as duas gravações
+  intencionais: o grupo encarregado da categoria e os atores e o status do chamado na
+  distribuição.
+
 ## [1.3.3] - 2026-09-24
 
 ### Atenção ao atualizar

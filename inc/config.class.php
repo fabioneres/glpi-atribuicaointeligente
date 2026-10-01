@@ -429,8 +429,11 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       }
 
       $where = '';
-      $entityIds = self::getManageableEntityIds();
-      if (!empty($entityIds)) {
+      if (!Session::canViewAllEntities()) {
+         $entityIds = self::getManageableEntityIds();
+         if (empty($entityIds)) {
+            return [];
+         }
          $where = 'WHERE ent.`id` IN (' . implode(',', array_map('intval', $entityIds)) . ')';
       }
 
@@ -457,13 +460,17 @@ class PluginAtribuicaointeligenteConfig extends CommonDBTM {
       return $rows;
    }
 
+   /**
+    * Entidades cuja habilitacao o usuario pode alterar: somente as entidades
+    * ativas da sessao. Ate a 1.3.3 a raiz (0) era sempre incluida, e um perfil
+    * restrito a uma subentidade conseguia ligar ou desligar o plugin na raiz.
+    */
    public static function getManageableEntityIds(): array {
       if (Session::canViewAllEntities()) {
          return [];
       }
 
       $entities = array_map('intval', $_SESSION['glpiactiveentities'] ?? []);
-      $entities[] = 0;
       return array_values(array_unique(array_filter($entities, static function($entityId) {
          return $entityId >= 0;
       })));

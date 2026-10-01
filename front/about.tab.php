@@ -48,7 +48,7 @@ if (!defined('GLPI_ROOT')) {
                   GLPI 10.0.25.
                </p>
                <p class="text-muted mb-0">
-                  <?php echo __('Usa tabelas proprias e nao altera o core nem tabelas nativas do GLPI.', 'atribuicaointeligente'); ?>
+                  <?php echo __('Usa tabelas proprias e nao altera o core nem a estrutura das tabelas nativas do GLPI.', 'atribuicaointeligente'); ?>
                </p>
             </div>
          </div>
@@ -106,7 +106,7 @@ if (!defined('GLPI_ROOT')) {
             <li><?php echo __('Se todos os tecnicos candidatos estiverem indisponiveis, o chamado nao recebe tecnico automaticamente e o motivo fica registrado em log.', 'atribuicaointeligente'); ?></li>
             <li><?php echo __('A atribuicao manual usa o dropdown nativo do GLPI, mas a gravacao e bloqueada se o tecnico estiver indisponivel.', 'atribuicaointeligente'); ?></li>
             <li><?php echo __('Indisponibilidades e escalas podem ser globais ou restritas a entidade, conforme o cadastro realizado.', 'atribuicaointeligente'); ?></li>
-            <li><?php echo __('O plugin usa tabelas proprias e nao altera o core nem tabelas nativas do GLPI.', 'atribuicaointeligente'); ?></li>
+            <li><?php echo __('O plugin nao altera o core nem a estrutura das tabelas nativas. Grava em tabelas nativas apenas o grupo encarregado da categoria (acao em massa da aba Categorias) e, na distribuicao, os atores e o status do chamado, pelas APIs do GLPI.', 'atribuicaointeligente'); ?></li>
          </ul>
       </div>
    </div>
