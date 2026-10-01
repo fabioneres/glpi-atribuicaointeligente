@@ -8,7 +8,10 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 As versões **2.x** são compatíveis **somente com GLPI 11.0.x** (branch `main`), e as
 versões **1.x**, **somente com GLPI 10.0.x** (branch `glpi10`).
 
-## [Unreleased]
+## [2.0.0-rc.2] - 2026-10-01
+
+Segunda versão candidata para GLPI 11. Corrige o que a validação navegada da rc.1 encontrou e duas
+falhas de permissão herdadas da 1.x. Validada em GLPI 11.0.10.
 
 ### Segurança
 
