@@ -8,10 +8,56 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 As versões **2.x** são compatíveis **somente com GLPI 11.0.x** (branch `main`), e as
 versões **1.x**, **somente com GLPI 10.0.x** (branch `glpi10`).
 
-## [Unreleased]
+## [2.0.0] - 2026-10-06
+
+Primeira versão **estável** para GLPI 11. Reúne as versões candidatas 2.0.0-rc.1 e 2.0.0-rc.2 e uma
+correção na desinstalação. Tem as mesmas funcionalidades da 1.3.3. Validada em GLPI 11.0.11, inclusive
+a migração de uma cópia de dados do GLPI 10 com a 1.3.3.
+
+### Atenção ao atualizar
+
+- Requer **GLPI 11.0.x** e **PHP 8.2** ou superior. O GLPI 10 continua na linha 1.x.
+- As tabelas do plugin são as mesmas da 1.3.3. Ao levar o GLPI de 10 para 11, faça backup do banco,
+  instale a 2.x no lugar da 1.3.3 e atualize o plugin em **Configurar > Plugins**.
+- Depois do `database:update` do GLPI, os plugins ficam com a execução suspensa. Retome a execução
+  (`php bin/console plugin:resume_execution`) antes de atualizar o plugin.
+- Se a pasta do plugin estiver ausente, o GLPI mostra "Erro / para limpar". Não clique em "Limpar":
+  coloque a pasta nova e use "Atualizar".
+- Quem já usa uma versão candidata (rc) atualiza do mesmo modo.
+
+### Segurança
+
+- Um perfil com o direito do plugin restrito a uma subentidade conseguia ligar ou desligar o
+  plugin na entidade raiz, pela aba Entidades, inclusive com "Habilitar todas" e "Desabilitar
+  todas". A aba agora lista e altera só as entidades ativas do usuário. O problema vinha da 1.x.
+- As ações em massa nativas "Atualizar" e "Excluir permanentemente" permitiam que um perfil
+  restrito alterasse ou excluísse a regra de uma categoria de entidade superior, à qual ele não
+  tem acesso direto. Essas ações agora seguem a mesma restrição de entidade da edição. O problema
+  vinha da 1.x.
+
+### Alterado
+
+- Compatibilidade declarada: GLPI 11.0.0 a 11.0.99 e PHP 8.2 ou superior.
+- CSS e ícones passaram para a pasta `public/`, a única que o GLPI 11 serve ao navegador.
+  Os endereços continuam os mesmos.
+- Links e formulários das páginas do plugin passaram a usar o endereço explícito do plugin,
+  porque no GLPI 11 todas as requisições passam pelo `index.php`.
+- Chamadas que o GLPI 11 marcou como obsoletas foram substituídas pelas equivalentes atuais.
 
 ### Corrigido
 
+- Ao salvar uma indisponibilidade ou uma escala, nova ou editada, o registro era gravado, mas a
+  tela mostrava também "Erro ao gravar" e voltava ao formulário. Isso podia levar a cadastros
+  duplicados.
+- Na instalação e na atualização, o direito do plugin era gravado duas vezes. O GLPI 11 trata
+  isso como erro e interrompe a instalação.
+- As regras de categoria não carregavam no GLPI 11 por incompatibilidade de assinatura com o
+  core, e a ação em massa "Modificar" delas parava com erro.
+- O aviso de técnico indisponível na atribuição manual passou a escapar o nome do calendário,
+  porque o GLPI 11 exibe esses avisos sem escape.
+- A aba Sobre dizia que o plugin não altera tabelas nativas. Agora descreve as duas gravações
+  intencionais: o grupo encarregado da categoria e os atores e o status do chamado na
+  distribuição.
 - Ao desinstalar o plugin, as colunas padrão da lista de categorias (5 linhas em `glpi_displaypreferences`)
   continuavam no banco. Agora são removidas, e a reinstalação as recria.
 
