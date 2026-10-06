@@ -8,6 +8,13 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 As versões **2.x** são compatíveis **somente com GLPI 11.0.x** (branch `main`), e as
 versões **1.x**, **somente com GLPI 10.0.x** (branch `glpi10`).
 
+## [Unreleased]
+
+### Corrigido
+
+- Ao desinstalar o plugin, as colunas padrão da lista de categorias (5 linhas em `glpi_displaypreferences`)
+  continuavam no banco. Agora são removidas, e a reinstalação as recria.
+
 ## [2.0.0-rc.2] - 2026-10-01
 
 Segunda versão candidata para GLPI 11. Corrige o que a validação navegada da rc.1 encontrou e duas
