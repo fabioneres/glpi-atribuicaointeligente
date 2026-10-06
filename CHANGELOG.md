@@ -23,6 +23,8 @@ Esta linha de versões (1.x) é compatível **somente com GLPI 10.0.x**.
 - A aba Sobre dizia que o plugin não altera tabelas nativas. Agora descreve as duas gravações
   intencionais: o grupo encarregado da categoria e os atores e o status do chamado na
   distribuição.
+- Ao desinstalar o plugin, as colunas padrão da lista de categorias (5 linhas em `glpi_displaypreferences`)
+  continuavam no banco. Agora são removidas, e a reinstalação as recria.
 
 ## [1.3.3] - 2026-09-24
 

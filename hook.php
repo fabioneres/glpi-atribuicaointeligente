@@ -111,6 +111,12 @@ function plugin_atribuicaointeligente_uninstall() {
    }
 
    ProfileRight::deleteProfileRights([PluginAtribuicaointeligenteConfig::RIGHT_CONFIG]);
+
+   // As colunas padrao da lista de categorias ficam em tabela nativa; sem isto
+   // sobram linhas de um plugin que ja nao existe.
+   $DB->delete('glpi_displaypreferences', [
+      'itemtype' => ['LIKE', 'PluginAtribuicaointeligente%'],
+   ]);
    return true;
 }
 
