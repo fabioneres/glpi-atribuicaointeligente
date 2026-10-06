@@ -5,7 +5,7 @@
 </p>
 
 [![Licenca](https://img.shields.io/badge/Licenca-GPLv3%2B-orange)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![Release](https://img.shields.io/badge/Release-1.3.3-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/tag/v1.3.3)
+[![Release](https://img.shields.io/badge/Release-1.3.4-green)](https://github.com/fabioneres/glpi-atribuicaointeligente/releases/tag/v1.3.4)
 [![Contato](https://img.shields.io/badge/Contato-GitHub%20Issues-informational)](https://github.com/fabioneres/glpi-atribuicaointeligente/issues)
 [![GLPI](https://img.shields.io/badge/GLPI-10.0.x%20apenas-blue)](#compatibilidade)
 

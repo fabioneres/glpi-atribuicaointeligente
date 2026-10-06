@@ -7,7 +7,10 @@ seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 Esta linha de versões (1.x) é compatível **somente com GLPI 10.0.x**.
 
-## [Unreleased]
+## [1.3.4] - 2026-10-06
+
+Versão de **segurança** da linha 1.x, para GLPI 10.0.x. Corrige duas falhas de permissão e dois defeitos
+menores. Não há mudança de banco nem de funcionalidades. A linha para GLPI 11 é a 2.x.
 
 ### Segurança
 
